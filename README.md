@@ -1,2 +1,2 @@
 # ItemRack
-*Very* slightly edited to add suport for Turtle WoW's Turtle mount.
+ItemRack, from http://addons.us.to/addon/itemrack-0
