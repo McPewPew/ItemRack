@@ -5,6 +5,10 @@ ItemRackText = {}
 ItemRackText.INVTYPE_CONTAINER = "Bag"
 ItemRackText.MOUNTCHECK = "^Increases speed" -- used only for checking if a mount buff is a real one
 
+ItemRack_TURTLE		=	"Slow and steady..."
+ItemRack_DYNAMIC	=	"Increases speed based on Riding skill."
+ItemRack_FIXED		=	"Increases speed by (%d+)%%."
+
 --[[ Key bindings ]]--
 
 -- Bindings are created dynamically in the mod and are stored per-character with the binding attached to the set.
