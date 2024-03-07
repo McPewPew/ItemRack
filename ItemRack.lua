@@ -1872,8 +1872,13 @@ function ItemRack_Menu_OnClick(arg1)
 					end
 				end
 			end
-			PickupContainerItem(ItemRack.BaggedItems[id].bag,ItemRack.BaggedItems[id].slot)
-			PickupInventoryItem(ItemRack.InvOpen)
+			if ItemRack.InvOpen == 17 and MerchantFrame:IsShown() ~= 1 then
+				UseContainerItem(ItemRack.BaggedItems[id].bag, ItemRack.BaggedItems[id].slot, 1)
+			else
+				PickupContainerItem(ItemRack.BaggedItems[id].bag, ItemRack.BaggedItems[id].slot)
+				PickupInventoryItem(ItemRack.InvOpen)
+			end
+			
 		else
 			local j,bag,slot
 			-- swapping to an empty slot, create freespace
@@ -4584,16 +4589,24 @@ function Rack.IterateSwapQueue()
 					if queue[i].fromBag then
 						_,id = Rack.GetItemInfo(queue[i].fromBag,queue[i].fromSlot)
 						if id == queue[i].id then
-							PickupContainerItem(queue[i].fromBag,queue[i].fromSlot)
-							PickupInventoryItem(i)
+							if i == 17 and MerchantFrame:IsShown() ~= 1 then
+								UseContainerItem(queue[i].fromBag, queue[i].fromSlot, 1)
+							else
+								PickupContainerItem(queue[i].fromBag, queue[i].fromSlot)
+								PickupInventoryItem(i)
+							end
 						else
 							-- didn't find it at same bag spot when queued
 							_,bag,slot = Rack.FindSetItem(queue[i])
 							if bag then
 								queue[i].fromBag = bag
 								queue[i].fromSlot = slot
-								PickupContainerItem(bag,slot)
-								PickupInventoryItem(i)
+								if i == 17 and MerchantFrame:IsShown() ~= 1 then
+									UseContainerItem(bag, slot, 1)
+								else
+									PickupContainerItem(bag, slot)
+									PickupInventoryItem(i)
+								end
 							else
 								queue[i].id = nil -- forget we tried
 								queue[i].fromBag = nil
