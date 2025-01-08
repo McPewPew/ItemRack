@@ -3743,7 +3743,7 @@ function ItemRack_PlayerMounted(v1)
 	for i=1,24 do
 		buff = UnitBuff("player",i)
 		if buff then
-			if problem_mounts[buff] or v1 or string.find(buff,"QirajiCrystal_") or string.find(buff,"inv_pet_speedy") then
+			if problem_mounts[buff] or v1 or string.find(buff,"QirajiCrystal_") then
 				-- hunter could be in group, could be warlock epic mount etc, check if this is truly a mount
 				-- or if v1 is set to true, always check every buff. sigh this is slow but really no way around it without more data from users
 				Rack_TooltipScan:SetUnitBuff("player",i)
@@ -3751,6 +3751,10 @@ function ItemRack_PlayerMounted(v1)
 					mounted = true
 					i = 25
 				end
+			-- Separate handler for TWow's turtle mount
+			elseif string.find(buff,"inv_pet_speedy") then
+				mounted = true
+				i = 25
 			elseif string.find(buff,"Mount_") then
 				mounted = true
 				i = 25
