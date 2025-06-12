@@ -1760,6 +1760,21 @@ function ItemRack_Inv_OnEnter()
 	end
 end
 
+local function unequip_2h_weapon()
+    local _, _, mainHandItem = strfind(GetInventoryItemLink("player", 16) or "", "item:(%d+)")
+    local itemName, itemLink, itemQuality, itemLevel, itemType, itemSubType, itemCount, itemEquipLoc, itemTexture = GetItemInfo(mainHandItem)
+    if itemEquipLoc == "INVTYPE_2HWEAPON" then
+        Rack.ClearLockList()
+        local b,s = Rack.FindSpace()
+        if not b then
+            UIErrorsFrame:AddMessage(ERR_INV_FULL,1,.1,.1,1,UIERRORS_HOLD_TIME)
+        else
+            PickupInventoryItem(16)
+            PickupContainerItem(b,s)
+        end
+    end
+end
+
 function ItemRack_Menu_OnClick(arg1)
 
 	local id,i,unqueue = this:GetID()
@@ -1863,7 +1878,7 @@ function ItemRack_Menu_OnClick(arg1)
 				if GetInventoryItemLink("player",17) then
 					-- something is in offhand slot, move it out
 					Rack.ClearLockList()
-					bag,slot = Rack.FindSpace()
+					local bag,slot = Rack.FindSpace()
 					if not bag then
 						UIErrorsFrame:AddMessage(ERR_INV_FULL,1,.1,.1,1,UIERRORS_HOLD_TIME)
 					else
@@ -1872,13 +1887,12 @@ function ItemRack_Menu_OnClick(arg1)
 					end
 				end
 			end
-			if ItemRack.InvOpen == 17 and MerchantFrame:IsShown() ~= 1 then
-				UseContainerItem(ItemRack.BaggedItems[id].bag, ItemRack.BaggedItems[id].slot, 1)
-			else
-				PickupContainerItem(ItemRack.BaggedItems[id].bag, ItemRack.BaggedItems[id].slot)
-				PickupInventoryItem(ItemRack.InvOpen)
+			if ItemRack.InvOpen == 17 and not GetInventoryItemLink("player", 17) and GetInventoryItemLink("player", 16) then
+                -- unequip two-hand weapon if it's there
+                unequip_2h_weapon()
 			end
-			
+            PickupContainerItem(ItemRack.BaggedItems[id].bag, ItemRack.BaggedItems[id].slot)
+            PickupInventoryItem(ItemRack.InvOpen)
 		else
 			local j,bag,slot
 			-- swapping to an empty slot, create freespace
@@ -4593,24 +4607,24 @@ function Rack.IterateSwapQueue()
 					if queue[i].fromBag then
 						_,id = Rack.GetItemInfo(queue[i].fromBag,queue[i].fromSlot)
 						if id == queue[i].id then
-							if i == 17 and MerchantFrame:IsShown() ~= 1 then
-								UseContainerItem(queue[i].fromBag, queue[i].fromSlot, 1)
-							else
-								PickupContainerItem(queue[i].fromBag, queue[i].fromSlot)
-								PickupInventoryItem(i)
-							end
-						else
+							if i == 17 and not GetInventoryItemLink("player", 17) and GetInventoryItemLink("player", 16) then
+                                -- unequip two-hand weapon if it's there
+                                unequip_2h_weapon()
+						    end
+                            PickupContainerItem(queue[i].fromBag,queue[i].fromSlot)
+                            PickupInventoryItem(i)
+                        else
 							-- didn't find it at same bag spot when queued
 							_,bag,slot = Rack.FindSetItem(queue[i])
 							if bag then
 								queue[i].fromBag = bag
 								queue[i].fromSlot = slot
-								if i == 17 and MerchantFrame:IsShown() ~= 1 then
-									UseContainerItem(bag, slot, 1)
-								else
-									PickupContainerItem(bag, slot)
-									PickupInventoryItem(i)
-								end
+								if i == 17 and not GetInventoryItemLink("player", 17) and GetInventoryItemLink("player", 16) then
+                                    -- unequip two-hand weapon if it's there
+                                    unequip_2h_weapon()
+                                end
+                                PickupContainerItem(bag, slot)
+                                PickupInventoryItem(i)
 							else
 								queue[i].id = nil -- forget we tried
 								queue[i].fromBag = nil
