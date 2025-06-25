@@ -1507,19 +1507,12 @@ end
 
 function newItemRack_PaperDollItemSlotButton_OnEnter()
 
-	local id = this:GetName()
+	local id = this:GetID()
 
 	oldItemRack_PaperDollItemSlotButton_OnEnter()
 
 	if IsAltKeyDown() then
-		for i=0,19 do
-			if ItemRack.Indexes[i].paperdoll_slot==id then
-				id = i
-				break
-			end
-		end
-
-		if tonumber(id) and not InRepairMode() and not ItemRack.InvOpen then
+		if id and not InRepairMode() and not ItemRack.InvOpen then
 			ItemRack_BuildMenu(id,"CHARACTERSHEET")
 		end
 	end
