@@ -475,7 +475,7 @@ end
 -- the old central info gatherer, now a wrapper to Rack.GetItemInfo
 local function get_item_info(bag,slot)
 
-	local texture,name,equipslot,soulbound,count
+	local texture,itemID,name,equipslot,soulbound,count
 
 	if bag==20 then
 		-- if querying set slot, return current set texture and name
@@ -489,7 +489,7 @@ local function get_item_info(bag,slot)
 		return texture,name
 	end
 
-	texture,_,name,equipslot = Rack.GetItemInfo(bag,slot)
+	texture,itemID,name,equipslot = Rack.GetItemInfo(bag,slot)
 	if slot then
 		_,count = GetContainerItemInfo(bag,slot)
 	end
@@ -508,7 +508,7 @@ local function get_item_info(bag,slot)
 		end
 	end
 
-	return texture,name,equipslot,soulbound,count
+	return texture,itemID,name,equipslot,soulbound,count
 end
 
 local function cursor_empty()
@@ -553,7 +553,7 @@ local function cooldowns_need_updating()
 	ItemRack.CooldownsNeedUpdating = true
 end
 
-local function populate_baggeditems(idx,bag,slot,name,texture)
+local function populate_baggeditems(idx,bag,slot,name,texture,id)
 
 	if not ItemRack.BaggedItems[idx] then
 		ItemRack.BaggedItems[idx] = {}
@@ -562,6 +562,7 @@ local function populate_baggeditems(idx,bag,slot,name,texture)
 	ItemRack.BaggedItems[idx].slot = slot
 	ItemRack.BaggedItems[idx].name = name
 	ItemRack.BaggedItems[idx].texture = texture
+	ItemRack.BaggedItems[idx].id = id
 end
 
 -- to minimize garbage creation, tables are manipulated by copying values instead of tables
@@ -574,6 +575,7 @@ local function copy_baggeditems(source,dest)
 	ItemRack.BaggedItems[dest].slot = ItemRack.BaggedItems[source].slot
 	ItemRack.BaggedItems[dest].name = ItemRack.BaggedItems[source].name
 	ItemRack.BaggedItems[dest].texture = ItemRack.BaggedItems[source].texture
+	ItemRack.BaggedItems[dest].id = ItemRack.BaggedItems[source].id
 end
 
 -- sorts menu up to stop_point, which is idx+1 usually (sort uses stop_point as a temp spot for swapping)
@@ -606,7 +608,7 @@ end
 -- setframe = true if this is to dock to the set frame
 function ItemRack_BuildMenu(invslot,relativeTo)
 
-	local idx,j,k,item,texture,name,equipslot,soulbound,found,count = 1
+	local idx,j,k,item,itemID,texture,name,equipslot,soulbound,found,count = 1
 	local mainorient = ItemRack_Users[user].MainOrient
 	local bagStart,bagEnd = 0,4
 
@@ -647,7 +649,7 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 		-- go through bags and gather items into .BaggedItems
 		for i=bagStart,bagEnd do
 			for j=1,GetContainerNumSlots(i) do
-				texture,name,equipslot,soulbound,count = get_item_info(i,j)
+				texture,itemID,name,equipslot,soulbound,count = get_item_info(i,j)
 				soulbound = soulbound or ItemRack.Indexes[invslot].ignore_soulbound -- pretend item soulbound if flagged to ignore_soulbound
 				if (equipslot and ItemRack.Indexes[invslot][equipslot]) and (soulbound or ItemRack_Settings.Soulbound=="OFF") then
 					if ItemRack_Settings.AllowHidden=="ON" and ItemRack_Users[user].Ignore[name] and not IsAltKeyDown() then
@@ -663,11 +665,11 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 								end
 							end
 							if not found then
-								populate_baggeditems(idx,i,j,name,texture)
+								populate_baggeditems(idx,i,j,name,texture,itemID)
 								idx = idx + 1
 							end					
 						else
-							populate_baggeditems(idx,i,j,name,texture)
+							populate_baggeditems(idx,i,j,name,texture,itemID)
 							idx = idx + 1
 						end
 					end
@@ -1857,7 +1859,7 @@ function ItemRack_Menu_OnClick(arg1)
 
 	local id = this:GetID()
 	local name = ItemRack.BaggedItems[id].name
-
+    local itemID = ItemRack.BaggedItems[id].id
 	this:SetChecked(0)
 
 	if SpellIsTargeting() or CursorHasItem() then return end -- prohibit swaps while in spell target/disenchant mode
@@ -1866,8 +1868,9 @@ function ItemRack_Menu_OnClick(arg1)
 		if ItemRack.InvOpen~=20 then
 			Rack.ClearLockList()
 			local bag,slot
-			if ItemRack.BankedItems[id] then
-				bag,slot = Rack.FindSpace()
+			if ItemRack.BankedItems[itemID] then
+                -- swap from bank to bag
+                bag,slot = Rack.FindSpace()
 				if bag then
 					PickupContainerItem(ItemRack.BaggedItems[id].bag,ItemRack.BaggedItems[id].slot)
 					PickupContainerItem(bag,slot)
@@ -1875,6 +1878,7 @@ function ItemRack_Menu_OnClick(arg1)
 					Rack.NoMoreRoom()
 				end
 			else
+                -- swap from bag to bank
 				bag,slot = Rack.FindSpace(1)
 				if bag then
 					PickupContainerItem(ItemRack.BaggedItems[id].bag,ItemRack.BaggedItems[id].slot)
@@ -1882,7 +1886,6 @@ function ItemRack_Menu_OnClick(arg1)
 				else
 					Rack.NoMoreRoom()
 				end
-				-- *** swap from bag to bank
 			end
 		else
 			if Rack.SetHasBanked(name) then
@@ -1951,7 +1954,7 @@ function ItemRack_Menu_OnClick(arg1)
 		ItemRack.Swapping = true
 		if ItemRack.BaggedItems[id].bag then
 			-- find out if incoming item is two-hand or offhand that may leave a loose item in bags for later move
-			local _,_,equipslot = get_item_info(ItemRack.BaggedItems[id].bag,ItemRack.BaggedItems[id].slot)
+			local _,_,_,equipslot = get_item_info(ItemRack.BaggedItems[id].bag,ItemRack.BaggedItems[id].slot)
 			if equipslot=="INVTYPE_2HWEAPON" then
 				if GetInventoryItemLink("player",17) then
 					-- something is in offhand slot, move it out
@@ -2707,7 +2710,7 @@ function ItemRack_Sets_Save_OnClick()
 	ItemRack_Sets_Name:ClearFocus()
 
 	-- if a 2H weapon in mainhand, ignore offhand (don't try to equip empty slot to offhand)
-	_,_,itemslot = get_item_info(16)
+	_,_,_,itemslot = get_item_info(16)
 	if itemslot=="INVTYPE_2HWEAPON" then
 		ItemRack.SetBuild[17] = nil
 	end
@@ -2723,7 +2726,7 @@ function ItemRack_Sets_Save_OnClick()
 			if ItemRack.SetBuild[i]==1 then
 				Rack_User[user].Sets[setname][i] = {}
 				itemcount = itemcount + 1
-				_,itemname = get_item_info(i)
+				_,_,itemname = get_item_info(i)
 				Rack_User[user].Sets[setname][i].name = itemname or "(empty)"
 				_,Rack_User[user].Sets[setname][i].id = Rack.GetItemInfo(i)
 			end
