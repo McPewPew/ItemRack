@@ -612,27 +612,6 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 	local mainorient = ItemRack_Users[user].MainOrient
 	local bagStart,bagEnd = 0,4
 
-	if relativeTo=="SET" or relativeTo=="CHARACTERSHEET" then
-		-- if displaying to a set, then 
-		mainorient = "VERTICAL"
-		if invslot==0 or invslot==16 or invslot==17 or invslot==18 then
-			mainorient = "HORIZONTAL"
-		end
-	elseif relativeTo=="MINIMAP" then
-		mainorient = "HORIZONTAL"
-	elseif relativeTo=="TITAN" then
-		mainorient = "HORIZONTAL"
-	end
-	ItemRack_DockMenu(invslot,relativeTo)
-
-	for i=1,table.getn(ItemRack_Users[user].Bar) do
-		if invslot~=ItemRack_Users[user].Bar[i] then
-			getglobal("ItemRackInv"..ItemRack_Users[user].Bar[i]):UnlockHighlight()
-		else
-			getglobal("ItemRackInv"..ItemRack_Users[user].Bar[i]):LockHighlight()
-		end
-	end
-
 	if invslot==0 then
 		-- if this is an ammo slot, clear totals
 		for i in ItemRack.AmmoCounts do
@@ -703,6 +682,27 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 		-- user has no bagged items for this type
 		ItemRack_MenuFrame:Hide()
 	else
+		if relativeTo=="SET" or relativeTo=="CHARACTERSHEET" then
+			-- if displaying to a set, then 
+			mainorient = "VERTICAL"
+			if invslot==0 or invslot==16 or invslot==17 or invslot==18 then
+				mainorient = "HORIZONTAL"
+			end
+		elseif relativeTo=="MINIMAP" then
+			mainorient = "HORIZONTAL"
+		elseif relativeTo=="TITAN" then
+			mainorient = "HORIZONTAL"
+		end
+		ItemRack_DockMenu(invslot,relativeTo)
+	
+		for i=1,table.getn(ItemRack_Users[user].Bar) do
+			if invslot~=ItemRack_Users[user].Bar[i] then
+				getglobal("ItemRackInv"..ItemRack_Users[user].Bar[i]):UnlockHighlight()
+			else
+				getglobal("ItemRackInv"..ItemRack_Users[user].Bar[i]):LockHighlight()
+			end
+		end
+
 		-- display items outward from docking point
 		local col,row,xpos,ypos = 0,0,dock_info("xstart"),dock_info("ystart")
 		local max_cols = 1
