@@ -1539,7 +1539,7 @@ function newItemRack_PaperDollItemSlotButton_OnEnter()
 			end
 		end
 
-		if tonumber(id) and not InRepairMode() then
+		if tonumber(id) and not InRepairMode() and not ItemRack.InvOpen then
 			ItemRack_BuildMenu(id,"CHARACTERSHEET")
 		end
 	end
