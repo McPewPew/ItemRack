@@ -447,7 +447,7 @@ end
 -- separated from get_item_info because tooltip scanning should be done only at utmost need
 local function player_can_wear(bag,slot,invslot)
 
-	local found,i,txt = false
+	local found,txt,itemType = false
 
 	for i=2,15 do
 		-- ClearLines doesn't remove colors, manually remove them
@@ -464,7 +464,7 @@ local function player_can_wear(bag,slot,invslot)
 		end
 	end
 
-	local _,_,_,itemType = Rack.GetItemInfo(bag,slot)
+	_,_,_,itemType = Rack.GetItemInfo(bag,slot)
 	if itemType=="INVTYPE_WEAPON" and invslot==17 and not ItemRack.CanWearOneHandOffHand then
 		found = true
 	end
@@ -535,7 +535,7 @@ end
 -- updates cooldown spinners in the main bar
 local function update_inv_cooldowns()
 
-	local i, start, duration, enable
+	local start, duration, enable
 
 	if table.getn(ItemRack_Users[user].Bar)>0 then
 		for i=1,table.getn(ItemRack_Users[user].Bar) do
@@ -579,7 +579,7 @@ end
 -- sorts menu up to stop_point, which is idx+1 usually (sort uses stop_point as a temp spot for swapping)
 local function sort_menu(stop_point)
 
-	local done,i=false
+	local done=false
 
 	if stop_point>2 then
 		while not done do
@@ -606,7 +606,7 @@ end
 -- setframe = true if this is to dock to the set frame
 function ItemRack_BuildMenu(invslot,relativeTo)
 
-	local idx,i,j,k,item,texture,name,equipslot,soulbound,found = 1
+	local idx,j,k,item,texture,name,equipslot,soulbound,found,count = 1
 	local mainorient = ItemRack_Users[user].MainOrient
 	local bagStart,bagEnd = 0,4
 
@@ -678,7 +678,6 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 
 		if ItemRack_Settings.ShowEmpty=="ON" and GetInventoryItemLink("player",invslot) and not (ItemRack_Settings.RightClick=="ON" and (invslot==13 or invslot==14)) then
 			-- add an empty slot to the menu
-			_,_,i = string.find(ItemRack.Indexes[invslot].keybind,"Use (.+) Item")
 			_,j = GetInventorySlotInfo(string.gsub(ItemRack.Indexes[invslot].paperdoll_slot,"Character",""))
 			populate_baggeditems(idx,nil,nil,"(empty)",j)
 			idx = idx + 1
@@ -858,8 +857,8 @@ local function draw_inv()
 	end
 
 	-- for a left-to-right horizontal configuration
-	local cx,cy,i,item,texture,xspacer,yspacer = 56,56
-
+	local cx,cy,item,xspacer,yspacer = 56,56
+    local xdir,ydir,corner,cornerTo,cornerStart,xdirStart,ydirStart,xadd,yadd
 	if ItemRack_Users[user].MainOrient=="HORIZONTAL" then
 		-- horizontal from left to right
 		xdir,ydir,corner,cornerTo,cornerStart,xdirStart,ydirStart,xadd,yadd = 4,0,"TOPRIGHT","TOPLEFT","TOPLEFT",10,-10,40,0
@@ -1011,8 +1010,6 @@ end
 
 local function move_control()
 
-	local item = ItemRack_InvFrame
-
 	ItemRack_Control_Rotate:ClearAllPoints()
 	ItemRack_Control_Lock:ClearAllPoints()
 	ItemRack_Control_Options:ClearAllPoints()
@@ -1123,7 +1120,7 @@ local function initialize_display()
 
 	for i in ItemRack.OptInfo do
 		if ItemRack.OptInfo[i].type=="Check" and getglobal(i) then
-			item = getglobal(i.."Text")
+			local item = getglobal(i.."Text")
 			item:SetText(ItemRack.OptInfo[i].text)
 			item:SetTextColor(1,1,1)
 			if ItemRack.OptInfo[i].info and ItemRack_Settings[ItemRack.OptInfo[i].info]=="ON" then
@@ -1162,26 +1159,6 @@ local function initialize_display()
 	draw_inv() -- construct the bar
 	ItemRack_SetAllCooldownFonts()
 	Rack.StartTimer("CooldownUpdate")
-end
-
--- returns true if no swaps are pending
-local function all_items_unlocked()
-
-	local i,j,bagged_item_locked,locked
-	local bagStart,bagEnd = 0,4
-
-	for i=0,19 do
-		locked = locked or IsInventoryItemLocked(i)
-	end
-
-	for i=bagStart,bagEnd do
-		for j=1,GetContainerNumSlots(i) do
-			_,_,bagged_item_locked = GetContainerItemInfo(i,j)
-			locked = locked or bagged_item_locked
-		end
-	end
-
-	return not locked
 end
 
 -- displays a quick tooltip note under the sets window
@@ -1230,8 +1207,6 @@ function ItemRack_OnLoad()
 end
 
 local function initialize_events(v1)
-
-	local i,j
 
 	ItemRack_DisableAllEvents()
 
@@ -1427,8 +1402,6 @@ end
 --[[ Main bar add/remove functions ]]--
 
 function ItemRack_Reset()
-
-	local i
 	-- restore user settings to default (but keep bar contents)
 	for i in ItemRackOpt_Defaults do
 		ItemRack_Users[user][i] = ItemRackOpt_Defaults[i]
@@ -1441,9 +1414,6 @@ function ItemRack_Reset()
 end
 
 local function remove_inv(id)
-
-	local i
-
 	getglobal("ItemRackInv"..id):Hide()
 	ItemRack_Users[user].Inv[id] = nil
 	for i=1,table.getn(ItemRack_Users[user].Bar) do
@@ -1463,7 +1433,7 @@ function newItemRack_UseAction(slot,checkCursor,onSelf)
 		Rack_TooltipScan:SetAction(slot)
 		local usedName = Rack_TooltipScanTextLeft1:GetText()
 
-		local i,name,foundSlot
+		local name,foundSlot
 
 		-- look for a worn item with same name as clicked item
 		for i=1,20 do
@@ -1471,7 +1441,7 @@ function newItemRack_UseAction(slot,checkCursor,onSelf)
 			name = Rack_TooltipScanTextLeft1:GetText()
 			if name==usedName then
 				foundSlot = i -- found this item in slot i
-				i = 21 -- whimpy break
+				break
 			end
 		end
 
@@ -1527,7 +1497,7 @@ end
 
 function newItemRack_PaperDollItemSlotButton_OnEnter()
 
-	local id,i = this:GetName()
+	local id = this:GetName()
 
 	oldItemRack_PaperDollItemSlotButton_OnEnter()
 
@@ -1535,7 +1505,7 @@ function newItemRack_PaperDollItemSlotButton_OnEnter()
 		for i=0,19 do
 			if ItemRack.Indexes[i].paperdoll_slot==id then
 				id = i
-				i = 20 -- whimpy break
+				break
 			end
 		end
 
@@ -1681,10 +1651,6 @@ function ItemRack_InvUpdate_OnUpdate()
 		-- if we're in disenchant/enchant/applying poison/sharpening stone/etc, check back later. do nothing for now
 		Rack.StartTimer("InvUpdate",1)
 	else
-
-		local i,j
-		local bagStart,bagEnd = 0,4
-
 		Rack.StopTimer("InvUpdate")
 		ItemRack.Swapping = false
 
@@ -1773,7 +1739,7 @@ function ItemRack_ReactUseInventoryItem(slot)
 	end
 	Rack.StartTimer("InvUpdate",1.5) -- extra long wait
 
-	_,_,item = string.find(GetInventoryItemLink("player",slot) or "","^.*%[(.*)%].*$")
+	local _,_,item = string.find(GetInventoryItemLink("player",slot) or "","^.*%[(.*)%].*$")
 	if ItemRack_Settings.Notify=="ON" and item then
 		ItemRack.NotifyList[item] = { bag=nil, slot=nil, inv=slot }
 	end
@@ -1881,7 +1847,7 @@ end
 
 function ItemRack_Menu_OnClick(arg1)
 
-	local id,i,unqueue = this:GetID()
+	local id = this:GetID()
 	local name = ItemRack.BaggedItems[id].name
 
 	this:SetChecked(0)
@@ -1998,7 +1964,7 @@ function ItemRack_Menu_OnClick(arg1)
             PickupContainerItem(ItemRack.BaggedItems[id].bag, ItemRack.BaggedItems[id].slot)
             PickupInventoryItem(ItemRack.InvOpen)
 		else
-			local j,bag,slot
+			local bag,slot
 			-- swapping to an empty slot, create freespace
 			Rack.ClearLockList()
 			bag,slot = Rack.FindSpace()
@@ -2030,7 +1996,6 @@ end
 function ItemRack_MenuFrame_OnHide()
 
 	Rack.StopTimer("MenuFrame")
-	local i
 	for i=0,20 do
 		getglobal("ItemRackInv"..i):UnlockHighlight()
 	end
@@ -2114,7 +2079,7 @@ end
 -- takes the currently-built tooltip and rebuilds with just name, durability and cooldown
 local function shrink_tooltip()
 
-	local nameline_line,durability_line,cooldown_line,tooltip_line,item_color
+	local name_line,durability_line,cooldown_line,tooltip_line,item_color
 
 	name_line = GameTooltipTextLeft1:GetText()
 
@@ -2224,7 +2189,7 @@ function ItemRack_CooldownUpdate_OnUpdate()
 
 	if ItemRack_Settings.CooldownNumbers=="ON" then
 
-		local i,start,duration
+		local start,duration
 		ItemRack.CurrentTime = GetTime()
 
 		if ItemRack_InvFrame:IsVisible() then
@@ -2247,7 +2212,7 @@ function ItemRack_CooldownUpdate_OnUpdate()
 
 	if ItemRack_Settings.Notify=="ON" then
 
-		local i,name,start,duration,cooldown
+		local name,start,duration,cooldown
 		ItemRack.CurrentTime = GetTime()
 
 		-- go down notify list and check up on each item used
@@ -2282,9 +2247,6 @@ function ItemRack_CooldownUpdate_OnUpdate()
 end
 
 function ItemRack_CooldownUpdate_OnHide()
-
-	local i
-
 	for i=0,19 do
 		getglobal("ItemRackInv"..i.."Time"):SetText("")
 	end
@@ -2417,7 +2379,7 @@ end
 
 function ItemRack_OptList_ScrollFrame_Update()
 
-	local i, idx, item, optinfo, optscroll, opttext, optbutton
+	local idx, item, optinfo, optscroll, opttext, optbutton
 	local offset = FauxScrollFrame_GetOffset(ItemRack_OptList_ScrollFrame)
 
 	FauxScrollFrame_Update(ItemRack_OptList_ScrollFrame, table.getn(ItemRack.OptScroll), 11, 19 )
@@ -2465,7 +2427,6 @@ end
 -- onclick for scrolling options, gets name of option and sends to _Opt_OnClick to process
 function ItemRack_OptList_OnClick()
 	local idx = FauxScrollFrame_GetOffset(ItemRack_OptList_ScrollFrame) + this:GetParent():GetID()
-	local optinfo = ItemRack.OptInfo[ItemRack.OptScroll[idx].idx]
 	ItemRack_Opt_OnClick(ItemRack.OptScroll[idx].idx)
 	ItemRack_OptList_ScrollFrame_Update()
 end
@@ -2533,8 +2494,6 @@ end
 -- initializes .SetIcons mostly, the list of icons for the set
 function ItemRack_Sets_Initialize()
 
-	local i
-
 	ItemRack.SetIcons = {}
 
 	for i=0,19 do
@@ -2568,7 +2527,7 @@ end
 
 function ItemRack_Sets_UpdateInventory()
 
-	local i,texture
+	local texture
 
 	if not ItemRack.SetIcons then
 		ItemRack_Sets_Initialize()
@@ -2588,7 +2547,7 @@ end
 
 function ItemRack_Sets_NewSet()
 
-	local i,texture
+	local texture
 
 	ItemRack_Sets_UpdateInventory()
 
@@ -2686,7 +2645,7 @@ end
 
 function ItemRack_Sets_ScrollFrame_Update()
 
-	local i, item, texture, idx
+	local item, texture, idx
 	local offset = FauxScrollFrame_GetOffset(ItemRack_Sets_ScrollFrame)
 
 	FauxScrollFrame_Update(ItemRack_Sets_ScrollFrame, ceil(table.getn(ItemRack.SetIcons) / 5) , 5, 24 )
@@ -2796,7 +2755,7 @@ function ItemRack_Sets_Saved_OnClick(arg1)
 
 	local id = this:GetID()
 	local idx = FauxScrollFrame_GetOffset(ItemRack_Sets_SavedScrollFrame) + id
-	local i,setname
+	local setname
 
 	ItemRack_Sets_SetSelect:Hide()
 
@@ -2833,7 +2792,7 @@ end
 -- gather all sets into a numerically-indexes list to be used by SavedScrollFrame
 function ItemRack_Sets_Build_Dropdown()
 
-	local idx,i,j,count=1
+	local idx,count=1
 
 	ItemRack.SetsList = ItemRack.SetsList or {}
 
@@ -2867,7 +2826,7 @@ end
 -- scrollbar update for saved sets (dropdown)
 function ItemRack_Sets_SavedScrollFrame_Update()
 
-	local i, idx, item
+	local idx
 	local offset = FauxScrollFrame_GetOffset(ItemRack_Sets_SavedScrollFrame)
 
 	local listsize,listheight,liststub,compact = 8,28,"ItemRack_Sets_Saved",nil
@@ -2932,7 +2891,7 @@ end
 -- displays a tooltip of a set's contents, set show_contents to override TinyTooltip option
 function ItemRack_Sets_Tooltip(setname,show_contents)
 
-	local count,missing,r,g,b,i,name,inv,bag = 0,0
+	local count,missing,r,g,b,id,name,inv,bag = 0,0
 
 	setname = setname or ItemRack.SelectedName
 
@@ -2986,7 +2945,7 @@ end
 -- returns a number 1-10 (or MaxKeyBindings) of an available key binding, nil if none are free
 local function get_free_binding()
 
-	local i,j,found,freeindex
+	local found,freeindex
 
 	for i=1,ItemRackText.MaxKeyBindings do
 		found = false
@@ -2997,7 +2956,7 @@ local function get_free_binding()
 		end
 		if not found then
 			freeindex = i
-			i = ItemRackText.MaxKeyBindings+1 -- whimpy break
+			break
 		end
 	end
 
@@ -3023,8 +2982,8 @@ local function unbind_keys(setname)
 	local idx
 
 	if not setname then
-		for idx=1,ItemRackText.MaxKeyBindings do
-			unbind_key_index(idx)
+		for i=1,ItemRackText.MaxKeyBindings do
+			unbind_key_index(i)
 		end
 	else
 		idx = Rack_User[user].Sets[setname].keyindex
@@ -3036,7 +2995,7 @@ end
 
 -- this takes the current key bindings and updates the .Sets info -- usually as a result of user changing bindings outside the mod
 function ItemRack_AgreeOnKeyBindings()
-	local i,oldkey,setname
+	local oldkey,setname
 
 	if ItemRack.KeyBindingsSettled then
 		-- don't do this at startup, wait until we had a chance to initialize this player's keys
@@ -3066,7 +3025,6 @@ function ItemRack_Sets_Remove_OnClick()
 		unbind_keys(ItemRack.SelectedName)
 		Rack_User[user].Sets[ItemRack.SelectedName] = nil
 		sets_message(string.format(ItemRackText.SETREMOVE,ItemRack.SelectedName))
-		local i
 		-- if an event has this set, remove the association
 		for i in ItemRack_Users[user].Events do
 			if ItemRack_Users[user].Events[i].setname==ItemRack.SelectedName then
@@ -3083,7 +3041,7 @@ end
 
 function ItemRack_UseSetBinding(v1)
 
-	local i,setname
+	local setname
 
 	-- look for sets with this key index
 	for i in Rack_User[user].Sets do
@@ -3101,7 +3059,6 @@ end
 local function bind_key_to_set(key,setname)
 
 	-- check if another set has this key binding
-	local i
 	for i in Rack_User[user].Sets do
 		if Rack_User[user].Sets[i].key == key then
 			unbind_keys(i) -- remove the other set's key binding if so
@@ -3185,7 +3142,7 @@ end
 
 function ItemRack_InitializeKeyBindings()
 
-	local i, keyidx
+	local keyidx
 
 	unbind_keys() -- remove all 10 keybindings (from previous users perhaps)
 
@@ -3355,7 +3312,7 @@ end
 -- builds eventList, a numerically-indexed list of events and their associated sets
 function ItemRack_Build_eventList()
 
-	local i
+	local class
 	eventListSize = 1
 	local oldeventname,eventname
 
@@ -3431,7 +3388,7 @@ end
 -- update for the list of events scrollframe
 function ItemRack_Events_ScrollFrame_Update()
 
-	local i, texture, idx, button, icon, enable, name
+	local idx, button, icon, enable, name
 	local offset = FauxScrollFrame_GetOffset(ItemRack_Events_ScrollFrame)
 
 	FauxScrollFrame_Update(ItemRack_Events_ScrollFrame, eventListSize-1, 7, 26 )
@@ -3607,7 +3564,6 @@ function ItemRack_EventButtons(v1)
 		ItemRack_EventScript:SetFocus()
 
 	elseif v1=="Save" then
-		local eventname = eventList[ItemRack.SelectedEvent] and eventList[ItemRack.SelectedEvent].name
 		local name = ItemRack_EventName:GetText()
 		if name and string.len(name)>0 then
 			if not ItemRack_Events[name] then
@@ -3633,7 +3589,7 @@ ItemRack.Register = {} -- game events (UNIT_AURA, etc) are stored here
 
 -- debug function, to list registered game events and the mod events they are for
 function ItemRack_ListEvents()
-	local i,j,foundtrigger,foundevent
+	local foundtrigger,foundevent
 
 	for i in ItemRack.Register do
 		foundtrigger=1
@@ -3672,7 +3628,7 @@ function ItemRack_DisableEvent(eventname)
 	if not ItemRack_Events[eventname] then return end
 
 	local trigger = ItemRack_Events[eventname].trigger
-	local has_event,i
+	local has_event
 
 	if ItemRack.Register[trigger] then
 		ItemRack.Register[trigger][eventname] = nil
@@ -3688,7 +3644,6 @@ end
 
 -- use this to initialize, enable or refresh Register
 function ItemRack_EnableAllEvents()
-	local i
 
 	if ItemRack_Settings.Notify=="OFF" then
 		-- if notify is off, see if any ITEMRACK_NOTIFY events are registered and turn on notify
@@ -3717,8 +3672,6 @@ end
 
 -- use this to trun off all event watching.
 function ItemRack_DisableAllEvents()
-	local i
-
 	for i in ItemRack_Users[user].Events do
 		ItemRack_DisableEvent(i)
 	end
@@ -3751,8 +3704,6 @@ end
 
 -- events("triggers") defined in game go through here
 function ItemRack_RegisterFrame_OnEvent(event)
-	local i,j
-
 	if ItemRack.Register[event] then
 		for i in ItemRack.Register[event] do
 			if ItemRack_Events[i].delay==0 then
@@ -3770,9 +3721,6 @@ end
 
 local register_timer = 0
 function ItemRack_RegisterFrame_OnUpdate()
-
-	local i
-
 	-- check every .25 seconds if time has elapsed for events with a delay
 	register_timer = register_timer + arg1
 	if register_timer > .25 then
@@ -3905,7 +3853,7 @@ end
 -- returns the name of the form the player is in
 function ItemRack_GetForm()
 
-	local i,name,form
+	local name,form,is_active
 
 	for i=1,GetNumShapeshiftForms() do
 		_,name,is_active = GetShapeshiftFormInfo(i)
@@ -4055,7 +4003,7 @@ end
 
 -- returns itemTexture, itemID, itemName, itemSlot of an item in container(bag,slot) or inventory("player",bag)
 function Rack.GetItemInfo(bag,slot)
-	local i,j,id,itemLink,itemID,itemSlot,itemTexture,itemName
+	local id,itemLink,itemID,itemSlot,itemTexture,itemName
 
 	if slot then -- this is a container item
 		itemLink = GetContainerItemLink(bag,slot)
@@ -4193,7 +4141,7 @@ end
 -- returns inv,bag,slot of an itemID, or itemName if itemID doesn't exist
 function Rack.FindItem(itemID,itemName,passive)
 
-	local bagStart,bagEnd,i,j,id,name = 0,4
+	local bagStart,bagEnd,id,name = 0,4
 	local inv,bag,slot
 
 	if itemID then
@@ -4216,7 +4164,7 @@ function Rack.FindItem(itemID,itemName,passive)
 					_,id = Rack.GetItemInfo(i)
 					if id==itemID then
 						inv = i
-						i = 99
+						break
 					end
 				end
 			end
@@ -4246,7 +4194,7 @@ function Rack.FindItem(itemID,itemName,passive)
 						_,_,name = Rack.GetItemInfo(i)
 						if name==itemName then
 							inv = i
-							i = 99
+							break
 						end
 					end
 				end
@@ -4431,10 +4379,9 @@ end
 
 function Rack.EquipSet(setname)
 
-	local i,bag,slot,id,swap,idx
-	local mustWait -- flag that this swap must happen in stages (INV needs to move out of the way)
+	local bag,slot,id,swap,idx,inv,sourceEquipSlot,destEquipSlot
 	local set = Rack_User[user].Sets[setname]
-	local hasTWOHAND, hasINVTOBAG, hasINVTOINV, hasBAGTOINV, hasAMMO
+	local hasINVTOBAG, hasINVTOINV, hasBAGTOINV
 	local missing = "ItemRack could not find: "
 	local invStart,invEnd = 1,19 -- changes to 16,18 if in combat
 
@@ -4532,7 +4479,6 @@ function Rack.EquipSet(setname)
 						if i==16 then -- this is a mainhand weapon
 							_,_,_,slot = Rack.GetItemInfo(swap.sourceBag,swap.sourceSlot)
 							if slot=="INVTYPE_2HWEAPON" and GetInventoryItemLink("player",17) then
-								hasTWOHAND = 1 -- flag a 2h swap in this set if there's an offhand equipped
 								if not set[17] then
 									set[17] = {}
 								end
@@ -4764,10 +4710,12 @@ end
 
 function Rack.PrintSet(setname)
 
-	local i,j
+	local j
 	for i=0,19 do
 		j=Rack_User[user].Sets[setname]
-		if j and j[i] then DEFAULT_CHAT_FRAME:AddMessage(Rack.SlotInfo[i].name..": "..tostring(j[i].id).." : "..tostring(Rack.GetNameByID(j[i].id)).." old:"..tostring(j[i].old)) end
+		if j and j[i] then
+            DEFAULT_CHAT_FRAME:AddMessage(Rack.SlotInfo[i].name..": "..tostring(j[i].id).." : "..tostring(Rack.GetNameByID(j[i].id)).." old:"..tostring(j[i].old))
+        end
 	end
 end
 
@@ -4815,7 +4763,7 @@ function Rack.AnyLocked()
 	for i=0,19 do
 		if IsInventoryItemLocked(i) then
 			locked = 1
-			i = 99
+			break
 		end
 	end
 
@@ -5125,13 +5073,13 @@ end
 
 function Rack.PopulateBank()
 	Rack.UnpopulateBank()
-	local itemLink,itemID,itemName,equipLoc
+	local itemLink,itemID,equipLoc
 	for i=1,table.getn(ItemRack.BankSlots) do
 		for j=1,GetContainerNumSlots(ItemRack.BankSlots[i]) do
 			itemLink = GetContainerItemLink(ItemRack.BankSlots[i],j) or ""
 			_,_,itemID = string.find(itemLink,"(item:%d+:%d+:%d+)")
 			if itemID then
-				itemName,_,_,_,_,_,_,equipLoc = GetItemInfo(itemID)
+				_,_,_,_,_,_,_,equipLoc = GetItemInfo(itemID)
 				if equipLoc and equipLoc~="" then
 					ItemRack.BankedItems[string.gsub(itemID, "item:", "")] = 1
 				end
@@ -5161,7 +5109,7 @@ end
 
 function Rack.SetHasBanked(setname)
 	if not setname or not Rack_User[user].Sets[setname] then return end
-	local name,item
+	local item
 	for i=0,19 do
 		item = Rack_User[user].Sets[setname][i]
 		if item and item.name and ItemRack.BankedItems[item.id] then
