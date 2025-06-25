@@ -960,9 +960,7 @@ local function draw_inv()
 		-- update plugin if it exists
 		local setname = Rack.CurrentSet()
 		if setname and ItemRack_Users[user].Sets[setname] then
-			ItemRack_UpdatePlugins(setname,ItemRack_Users[user].Sets[setname].icon)
-		else
-			ItemRack_UpdatePlugins(nil,"Interface\\AddOns\\ItemRack\\ItemRack-Icon")
+			ItemRack_UpdatePlugins()
 		end
 	end
 
@@ -5160,7 +5158,7 @@ function Rack.PushSetToBank(setname)
 	Rack.ClearLockList()
 	local set = Rack_User[user].Sets[setname]
 	if not set or SpellIsTargeting() or CursorHasItem() then return end
-	local bag,slot,freeBag,freeSlot
+	local inv,bag,slot,freeBag,freeSlot
 	for i=0,19 do
 		if set[i] then
 			freeBag,freeSlot = Rack.FindSpace(1)
