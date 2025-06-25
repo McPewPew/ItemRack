@@ -2908,7 +2908,7 @@ function ItemRack_Sets_Tooltip(setname,show_contents)
 
 	if setname and Rack_User[user].Sets[setname] then
 
-		set_tooltip_anchor(this)
+		set_tooltip_anchor(GetMouseFocus())
 		GameTooltip:AddLine(string.format(ItemRackText.SETTOOLTIPFORMAT,setname))
 		for i=0,19 do
 			if Rack_User[user].Sets[setname][i] then
