@@ -1,6 +1,38 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
 
 	<!-- Templates -->
+	
+    <Frame name="ItemRackTimeTemplate" enableMouse="false" virtual="true">
+		<Size>
+			<AbsDimension x="36" y="12"/>
+		</Size>
+		<Anchors>
+			<Anchor point="BOTTOMRIGHT"/>
+		</Anchors>
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString name="$parentTime" inherits="NumberFontNormal" justifyH="CENTER"/>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="ItemRackQueueTemplate" enableMouse="false" virtual="true">
+		<Size>
+			<AbsDimension x="20" y="20"/>
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT">
+				<Offset>
+					<AbsDimension x="-2" y="2"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Layers>
+			<Layer level="OVERLAY">
+				<Texture name="$parentQueue"/>
+			</Layer>
+		</Layers>
+	</Frame>
 
 	<CheckButton name="ItemRackCheckTemplate" inherits="UICheckButtonTemplate" virtual="true">
 		<Size>
@@ -54,6 +86,10 @@
 				ItemRack_ClearTooltip()
 			</OnLeave>
 		</Scripts>
+        <Frames>
+            <Frame inherits="ItemRackTimeTemplate"/>
+            <Frame inherits="ItemRackQueueTemplate"/>
+        </Frames>
 	</CheckButton>
 
 	<CheckButton name="ItemRackMenuTemplate" inherits="ActionButtonTemplate" hidden="true" virtual="true">
@@ -71,39 +107,10 @@
 				ItemRack_ClearTooltip()
 			</OnLeave>
 		</Scripts>
+        <Frames>
+            <Frame inherits="ItemRackTimeTemplate"/>
+        </Frames>
 	</CheckButton>
-
-	<Frame name="ItemRackTimeTemplate" enableMouse="false" virtual="true">
-		<Size>
-			<AbsDimension x="36" y="12"/>
-		</Size>
-		<Anchors>
-			<Anchor point="BOTTOMRIGHT"/>
-		</Anchors>
-		<Layers>
-			<Layer level="OVERLAY">
-				<FontString name="$parentTime" inherits="NumberFontNormal" justifyH="CENTER"/>
-			</Layer>
-		</Layers>
-	</Frame>
-
-	<Frame name="ItemRackQueueTemplate" enableMouse="false" virtual="true">
-		<Size>
-			<AbsDimension x="20" y="20"/>
-		</Size>
-		<Anchors>
-			<Anchor point="TOPLEFT">
-				<Offset>
-					<AbsDimension x="-2" y="2"/>
-				</Offset>
-			</Anchor>
-		</Anchors>
-		<Layers>
-			<Layer level="OVERLAY">
-				<Texture name="$parentQueue"/>
-			</Layer>
-		</Layers>
-	</Frame>
 
 	<Frame name="ItemRackFrame">
 		<Scripts>
@@ -160,50 +167,6 @@
 			<CheckButton name="ItemRackInv18" inherits="ItemRackInvTemplate" id="18"/>
 			<CheckButton name="ItemRackInv19" inherits="ItemRackInvTemplate" id="19"/>
 			<CheckButton name="ItemRackInv20" inherits="ItemRackInvTemplate" id="20"/>
-
-			<Frame parent="ItemRackInv0" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv1" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv2" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv3" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv4" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv5" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv6" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv7" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv8" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv9" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv10" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv11" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv12" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv13" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv14" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv15" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv16" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv17" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv18" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv19" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackInv20" inherits="ItemRackTimeTemplate"/>
-
-			<Frame parent="ItemRackInv0" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv1" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv2" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv3" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv4" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv5" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv6" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv7" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv8" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv9" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv10" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv11" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv12" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv13" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv14" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv15" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv16" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv17" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv18" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv19" inherits="ItemRackQueueTemplate"/>
-			<Frame parent="ItemRackInv20" inherits="ItemRackQueueTemplate"/>
 
 			<Frame parent="CharacterAmmoSlot" inherits="ItemRackQueueTemplate"/>
 			<Frame parent="CharacterHeadSlot" inherits="ItemRackQueueTemplate"/>
@@ -278,70 +241,6 @@
 		<Anchors>
 			<Anchor point="CENTER"/>
 		</Anchors>
-		<Frames>
-			<CheckButton name="ItemRackMenu1" inherits="ItemRackMenuTemplate" id="1"/>
-			<CheckButton name="ItemRackMenu2" inherits="ItemRackMenuTemplate" id="2"/>
-			<CheckButton name="ItemRackMenu3" inherits="ItemRackMenuTemplate" id="3"/>
-			<CheckButton name="ItemRackMenu4" inherits="ItemRackMenuTemplate" id="4"/>
-			<CheckButton name="ItemRackMenu5" inherits="ItemRackMenuTemplate" id="5"/>
-			<CheckButton name="ItemRackMenu6" inherits="ItemRackMenuTemplate" id="6"/>
-			<CheckButton name="ItemRackMenu7" inherits="ItemRackMenuTemplate" id="7"/>
-			<CheckButton name="ItemRackMenu8" inherits="ItemRackMenuTemplate" id="8"/>
-			<CheckButton name="ItemRackMenu9" inherits="ItemRackMenuTemplate" id="9"/>
-			<CheckButton name="ItemRackMenu10" inherits="ItemRackMenuTemplate" id="10"/>
-			<CheckButton name="ItemRackMenu11" inherits="ItemRackMenuTemplate" id="11"/>
-			<CheckButton name="ItemRackMenu12" inherits="ItemRackMenuTemplate" id="12"/>
-			<CheckButton name="ItemRackMenu13" inherits="ItemRackMenuTemplate" id="13"/>
-			<CheckButton name="ItemRackMenu14" inherits="ItemRackMenuTemplate" id="14"/>
-			<CheckButton name="ItemRackMenu15" inherits="ItemRackMenuTemplate" id="15"/>
-			<CheckButton name="ItemRackMenu16" inherits="ItemRackMenuTemplate" id="16"/>
-			<CheckButton name="ItemRackMenu17" inherits="ItemRackMenuTemplate" id="17"/>
-			<CheckButton name="ItemRackMenu18" inherits="ItemRackMenuTemplate" id="18"/>
-			<CheckButton name="ItemRackMenu19" inherits="ItemRackMenuTemplate" id="19"/>
-			<CheckButton name="ItemRackMenu20" inherits="ItemRackMenuTemplate" id="20"/>
-			<CheckButton name="ItemRackMenu21" inherits="ItemRackMenuTemplate" id="21"/>
-			<CheckButton name="ItemRackMenu22" inherits="ItemRackMenuTemplate" id="22"/>
-			<CheckButton name="ItemRackMenu23" inherits="ItemRackMenuTemplate" id="23"/>
-			<CheckButton name="ItemRackMenu24" inherits="ItemRackMenuTemplate" id="24"/>
-			<CheckButton name="ItemRackMenu25" inherits="ItemRackMenuTemplate" id="25"/>
-			<CheckButton name="ItemRackMenu26" inherits="ItemRackMenuTemplate" id="26"/>
-			<CheckButton name="ItemRackMenu27" inherits="ItemRackMenuTemplate" id="27"/>
-			<CheckButton name="ItemRackMenu28" inherits="ItemRackMenuTemplate" id="28"/>
-			<CheckButton name="ItemRackMenu29" inherits="ItemRackMenuTemplate" id="29"/>
-			<CheckButton name="ItemRackMenu30" inherits="ItemRackMenuTemplate" id="30"/>
-
-			<Frame parent="ItemRackMenu1" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu2" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu3" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu4" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu5" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu6" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu7" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu8" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu9" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu10" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu11" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu12" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu13" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu14" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu15" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu16" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu17" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu18" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu19" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu20" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu21" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu22" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu23" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu24" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu25" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu26" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu27" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu28" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu29" inherits="ItemRackTimeTemplate"/>
-			<Frame parent="ItemRackMenu30" inherits="ItemRackTimeTemplate"/>
-
-		</Frames>
 		<Scripts>
 			<OnShow>
 				ItemRack_MenuFrame_OnShow()

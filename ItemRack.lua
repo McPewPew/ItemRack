@@ -80,7 +80,7 @@ ItemRack.FrameToScale = nil -- holds frame being scaled for ScaleUpdate
 
 ItemRack.BaggedItems = {} -- table containing items in bags to show in menu
 ItemRack.NumberOfItems = 0 -- number of items in the menu
-ItemRack.MaxItems = 30 -- maximum number of items that can display in the menu
+ItemRack.MaxItems = 0 -- maximum number of items that can display in the menu
 ItemRack.InvOpen = nil -- which inventory slot has its menu open
 
 ItemRack.TooltipOwner = nil -- (this) when tooltip created
@@ -695,7 +695,7 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 		sort_menu(idx)
 	end
 
-	ItemRack.NumberOfItems = math.min(idx-1,ItemRack.MaxItems)
+	ItemRack.NumberOfItems = idx-1
 
 	if ItemRack.NumberOfItems<1 then
 		-- user has no bagged items for this type
@@ -716,18 +716,24 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 		end
 
 		for i=1,ItemRack.NumberOfItems do
-
-			local item = getglobal("ItemRackMenu"..i.."Icon")
-			item:SetTexture(ItemRack.BaggedItems[i].texture)
+			local item = getglobal("ItemRackMenu"..i)
+            if not item then
+                item = CreateFrame("CheckButton", "ItemRackMenu"..i, ItemRack_MenuFrame, "ItemRackMenuTemplate")
+                item:SetID(i)
+                ItemRack_SetCooldownFont("ItemRackMenu"..i)
+                getglobal("ItemRackMenu"..i.."Border"):SetVertexColor(.15,.25,1,1)
+                getglobal("ItemRackMenu"..i.."Border"):Hide()
+                ItemRack.MaxItems = ItemRack.MaxItems + 1
+            end
+			local icon = getglobal("ItemRackMenu"..i.."Icon")
+			item:SetPoint("TOPLEFT","ItemRack_MenuFrame",ItemRack.MenuDock,xpos,ypos)
+			icon:SetTexture(ItemRack.BaggedItems[i].texture)
 			-- grey menu item if it's on the ignore list (ALT key is down if it made it to BaggedItems)
 			if ItemRack_Settings.AllowHidden=="ON" and (ItemRack_Users[user].Ignore[ItemRack.BaggedItems[i].name] or (Rack_User[user].Sets[ItemRack.BaggedItems[i].name] and Rack_User[user].Sets[ItemRack.BaggedItems[i].name].hide)) then
-				SetDesaturation(item,1)
+				SetDesaturation(icon,1)
 			else
-				SetDesaturation(item,nil)
+				SetDesaturation(icon,nil)
 			end
-
-			local item = getglobal("ItemRackMenu"..i)
-			item:SetPoint("TOPLEFT","ItemRack_MenuFrame",ItemRack.MenuDock,xpos,ypos)
 
 			if (mainorient=="HORIZONTAL" and ItemRack_Settings.RotateMenu=="OFF") or (mainorient=="VERTICAL" and ItemRack_Settings.RotateMenu=="ON") then
 				xpos = xpos + dock_info("xdir")*40
@@ -752,7 +758,9 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 			end
 		end
 		for i=(ItemRack.NumberOfItems+1),ItemRack.MaxItems do
-			getglobal("ItemRackMenu"..i):Hide()
+            if getglobal("ItemRackMenu"..i) then
+			    getglobal("ItemRackMenu"..i):Hide()
+            end
 		end
 		if col==0 then
 			row = row-1
@@ -1151,13 +1159,13 @@ local function initialize_display()
 
 	ItemRack_ChangeEventFont()
 
-	for i=1,30 do
-		getglobal("ItemRackMenu"..i.."Border"):SetVertexColor(.15,.25,1,1)
-		getglobal("ItemRackMenu"..i.."Border"):Hide()
-	end
+	-- for i=1,30 do
+	-- 	getglobal("ItemRackMenu"..i.."Border"):SetVertexColor(.15,.25,1,1)
+	-- 	getglobal("ItemRackMenu"..i.."Border"):Hide()
+	-- end
 
 	draw_inv() -- construct the bar
-	ItemRack_SetAllCooldownFonts()
+	-- ItemRack_SetAllCooldownFonts()
 	Rack.StartTimer("CooldownUpdate")
 end
 
