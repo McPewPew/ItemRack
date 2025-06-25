@@ -719,14 +719,14 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 
 		for i=1,ItemRack.NumberOfItems do
 			local item = getglobal("ItemRackMenu"..i)
-            if not item then
-                item = CreateFrame("CheckButton", "ItemRackMenu"..i, ItemRack_MenuFrame, "ItemRackMenuTemplate")
-                item:SetID(i)
-                ItemRack_SetCooldownFont("ItemRackMenu"..i)
-                getglobal("ItemRackMenu"..i.."Border"):SetVertexColor(.15,.25,1,1)
-                getglobal("ItemRackMenu"..i.."Border"):Hide()
-                ItemRack.MaxItems = ItemRack.MaxItems + 1
-            end
+			if not item then
+				item = CreateFrame("CheckButton", "ItemRackMenu"..i, ItemRack_MenuFrame, "ItemRackMenuTemplate")
+				item:SetID(i)
+				ItemRack_SetCooldownFont("ItemRackMenu"..i)
+				getglobal("ItemRackMenu"..i.."Border"):SetVertexColor(.15,.25,1,1)
+				getglobal("ItemRackMenu"..i.."Border"):Hide()
+				ItemRack.MaxItems = ItemRack.MaxItems + 1
+			end
 			local icon = getglobal("ItemRackMenu"..i.."Icon")
 			item:SetPoint("TOPLEFT","ItemRack_MenuFrame",ItemRack.MenuDock,xpos,ypos)
 			icon:SetTexture(ItemRack.BaggedItems[i].texture)
@@ -760,9 +760,9 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 			end
 		end
 		for i=(ItemRack.NumberOfItems+1),ItemRack.MaxItems do
-            if getglobal("ItemRackMenu"..i) then
-			    getglobal("ItemRackMenu"..i):Hide()
-            end
+			if getglobal("ItemRackMenu"..i) then
+				getglobal("ItemRackMenu"..i):Hide()
+			end
 		end
 		if col==0 then
 			row = row-1
@@ -868,7 +868,7 @@ local function draw_inv()
 
 	-- for a left-to-right horizontal configuration
 	local cx,cy,item,xspacer,yspacer = 56,56
-    local xdir,ydir,corner,cornerTo,cornerStart,xdirStart,ydirStart,xadd,yadd
+	local xdir,ydir,corner,cornerTo,cornerStart,xdirStart,ydirStart,xadd,yadd
 	if ItemRack_Users[user].MainOrient=="HORIZONTAL" then
 		-- horizontal from left to right
 		xdir,ydir,corner,cornerTo,cornerStart,xdirStart,ydirStart,xadd,yadd = 4,0,"TOPRIGHT","TOPLEFT","TOPLEFT",10,-10,40,0
@@ -1841,25 +1841,25 @@ function ItemRack_Inv_OnEnter()
 end
 
 local function unequip_2h_weapon()
-    local _, _, mainHandItem = strfind(GetInventoryItemLink("player", 16) or "", "item:(%d+)")
-    local itemName, itemLink, itemQuality, itemLevel, itemType, itemSubType, itemCount, itemEquipLoc, itemTexture = GetItemInfo(mainHandItem)
-    if itemEquipLoc == "INVTYPE_2HWEAPON" then
-        Rack.ClearLockList()
-        local b,s = Rack.FindSpace()
-        if not b then
-            UIErrorsFrame:AddMessage(ERR_INV_FULL,1,.1,.1,1,UIERRORS_HOLD_TIME)
-        else
-            PickupInventoryItem(16)
-            PickupContainerItem(b,s)
-        end
-    end
+	local _, _, mainHandItem = strfind(GetInventoryItemLink("player", 16) or "", "item:(%d+)")
+	local itemName, itemLink, itemQuality, itemLevel, itemType, itemSubType, itemCount, itemEquipLoc, itemTexture = GetItemInfo(mainHandItem)
+	if itemEquipLoc == "INVTYPE_2HWEAPON" then
+		Rack.ClearLockList()
+		local b,s = Rack.FindSpace()
+		if not b then
+			UIErrorsFrame:AddMessage(ERR_INV_FULL,1,.1,.1,1,UIERRORS_HOLD_TIME)
+		else
+			PickupInventoryItem(16)
+			PickupContainerItem(b,s)
+		end
+	end
 end
 
 function ItemRack_Menu_OnClick(arg1)
 
 	local id = this:GetID()
 	local name = ItemRack.BaggedItems[id].name
-    local itemID = ItemRack.BaggedItems[id].id
+	local itemID = ItemRack.BaggedItems[id].id
 	this:SetChecked(0)
 
 	if SpellIsTargeting() or CursorHasItem() then return end -- prohibit swaps while in spell target/disenchant mode
@@ -1869,8 +1869,8 @@ function ItemRack_Menu_OnClick(arg1)
 			Rack.ClearLockList()
 			local bag,slot
 			if ItemRack.BankedItems[itemID] then
-                -- swap from bank to bag
-                bag,slot = Rack.FindSpace()
+				-- swap from bank to bag
+				bag,slot = Rack.FindSpace()
 				if bag then
 					PickupContainerItem(ItemRack.BaggedItems[id].bag,ItemRack.BaggedItems[id].slot)
 					PickupContainerItem(bag,slot)
@@ -1878,7 +1878,7 @@ function ItemRack_Menu_OnClick(arg1)
 					Rack.NoMoreRoom()
 				end
 			else
-                -- swap from bag to bank
+				-- swap from bag to bank
 				bag,slot = Rack.FindSpace(1)
 				if bag then
 					PickupContainerItem(ItemRack.BaggedItems[id].bag,ItemRack.BaggedItems[id].slot)
@@ -1969,11 +1969,11 @@ function ItemRack_Menu_OnClick(arg1)
 				end
 			end
 			if ItemRack.InvOpen == 17 and not GetInventoryItemLink("player", 17) and GetInventoryItemLink("player", 16) then
-                -- unequip two-hand weapon if it's there
-                unequip_2h_weapon()
+				-- unequip two-hand weapon if it's there
+				unequip_2h_weapon()
 			end
-            PickupContainerItem(ItemRack.BaggedItems[id].bag, ItemRack.BaggedItems[id].slot)
-            PickupInventoryItem(ItemRack.InvOpen)
+			PickupContainerItem(ItemRack.BaggedItems[id].bag, ItemRack.BaggedItems[id].slot)
+			PickupInventoryItem(ItemRack.InvOpen)
 		else
 			local bag,slot
 			-- swapping to an empty slot, create freespace
@@ -4686,23 +4686,23 @@ function Rack.IterateSwapQueue()
 						_,id = Rack.GetItemInfo(queue[i].fromBag,queue[i].fromSlot)
 						if id == queue[i].id then
 							if i == 17 and not GetInventoryItemLink("player", 17) and GetInventoryItemLink("player", 16) then
-                                -- unequip two-hand weapon if it's there
-                                unequip_2h_weapon()
-						    end
-                            PickupContainerItem(queue[i].fromBag,queue[i].fromSlot)
-                            PickupInventoryItem(i)
-                        else
+								-- unequip two-hand weapon if it's there
+								unequip_2h_weapon()
+							end
+							PickupContainerItem(queue[i].fromBag,queue[i].fromSlot)
+							PickupInventoryItem(i)
+						else
 							-- didn't find it at same bag spot when queued
 							_,bag,slot = Rack.FindSetItem(queue[i])
 							if bag then
 								queue[i].fromBag = bag
 								queue[i].fromSlot = slot
 								if i == 17 and not GetInventoryItemLink("player", 17) and GetInventoryItemLink("player", 16) then
-                                    -- unequip two-hand weapon if it's there
-                                    unequip_2h_weapon()
-                                end
-                                PickupContainerItem(bag, slot)
-                                PickupInventoryItem(i)
+									-- unequip two-hand weapon if it's there
+									unequip_2h_weapon()
+								end
+								PickupContainerItem(bag, slot)
+								PickupInventoryItem(i)
 							else
 								queue[i].id = nil -- forget we tried
 								queue[i].fromBag = nil
@@ -4725,8 +4725,8 @@ function Rack.PrintSet(setname)
 	for i=0,19 do
 		j=Rack_User[user].Sets[setname]
 		if j and j[i] then
-            DEFAULT_CHAT_FRAME:AddMessage(Rack.SlotInfo[i].name..": "..tostring(j[i].id).." : "..tostring(Rack.GetNameByID(j[i].id)).." old:"..tostring(j[i].old))
-        end
+			DEFAULT_CHAT_FRAME:AddMessage(Rack.SlotInfo[i].name..": "..tostring(j[i].id).." : "..tostring(Rack.GetNameByID(j[i].id)).." old:"..tostring(j[i].old))
+		end
 	end
 end
 
