@@ -320,7 +320,7 @@ ItemRack_DefaultEvents = {
 	["Druid:Travel Form"] = {
 		["trigger"] = "PLAYER_AURAS_CHANGED",
 		["delay"] = 0,
-		["script"] = "local form=ItemRack_GetForm() if form==\"Travel Form\" and IR_FORM~=form then EquipSet() IR_FORM=form end --[[Equip a set when in travel form.]]",
+		["script"] = "local form=ItemRack_GetForm() if form==\"Travel Form\" and IR_FORM~=form then EquipSet() elseif form~=\"Travel Form\"  then LoadSet() end IR_FORM=form --[[Equip a set when in travel form.]]",
 	},
 	["Mount"] = {
 		["trigger"] = "PLAYER_AURAS_CHANGED",
