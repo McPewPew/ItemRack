@@ -3772,7 +3772,6 @@ function ItemRack_PlayerMounted(v1)
 				local text = Rack_TooltipScanTextLeft2:GetText() or ""
 				for _, pat in ipairs(mountBuffText) do
 					if string.find(text, pat) then
-						DEFAULT_CHAT_FRAME:AddMessage(text)
 						mounted = true
 						i = 25
 						break -- stop after first match
@@ -5122,3 +5121,4 @@ function Rack.NoMoreRoom()
 	DEFAULT_CHAT_FRAME:AddMessage("ItemRack: Not enough room to complete the swap.")
 
 end
+
