@@ -48,6 +48,12 @@ local problem_mounts = {
 	["Interface\\Icons\\Ability_Mount_JungleTiger"] =1,
 }
 
+local mountBuffText = {
+   ItemRackText.MOUNTCHECK,
+   "^Speed scales",
+   "^Slow and steady",
+}
+
 local current_events_version = 1.975 -- use to control when to upgrade events
 
 -- defaults for ItemRack_Users
@@ -3760,15 +3766,19 @@ function ItemRack_PlayerMounted(v1)
 			if problem_mounts[buff] or v1 or string.find(buff,"QirajiCrystal_") then
 				-- hunter could be in group, could be warlock epic mount etc, check if this is truly a mount
 				-- or if v1 is set to true, always check every buff. sigh this is slow but really no way around it without more data from users
+				--McP[
 				Rack_TooltipScan:SetUnitBuff("player",i)
-				if string.find(Rack_TooltipScanTextLeft2:GetText() or "",ItemRackText.MOUNTCHECK) then
-					mounted = true
-					i = 25
+				-- mountBuffText
+				local text = Rack_TooltipScanTextLeft2:GetText() or ""
+				for _, pat in ipairs(mountBuffText) do
+					if string.find(text, pat) then
+						DEFAULT_CHAT_FRAME:AddMessage(text)
+						mounted = true
+						i = 25
+						break -- stop after first match
+					end
 				end
-			-- Separate handler for TWow's turtle mount
-			elseif string.find(buff,"inv_pet_speedy") then
-				mounted = true
-				i = 25
+				--]McP
 			elseif string.find(buff,"Mount_") then
 				mounted = true
 				i = 25
@@ -5110,4 +5120,5 @@ end
 
 function Rack.NoMoreRoom()
 	DEFAULT_CHAT_FRAME:AddMessage("ItemRack: Not enough room to complete the swap.")
+
 end
