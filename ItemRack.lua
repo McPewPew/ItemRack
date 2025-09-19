@@ -38,21 +38,13 @@ ItemRack_Events = {}
 ItemRack_Version = 1.975
 
 --[[ Local Variables ]]--
-
--- some mount textures share non-mount buff textures, if you run across one put it here
-local problem_mounts = {
-	["Interface\\Icons\\Ability_Mount_PinkTiger"] = 1,
-	["Interface\\Icons\\Ability_Mount_WhiteTiger"] = 1,
-	["Interface\\Icons\\Spell_Nature_Swiftness"] = 1,
-	["Interface\\Icons\\INV_Misc_Foot_Kodo"] = 1,
-	["Interface\\Icons\\Ability_Mount_JungleTiger"] =1,
-}
-
+--McP
 local mountBuffText = {
    ItemRackText.MOUNTCHECK,
    "^Speed scales",
    "^Slow and steady",
 }
+--McP
 
 local current_events_version = 1.975 -- use to control when to upgrade events
 
@@ -3756,40 +3748,29 @@ end
 
 -- this is a special function to use for mount events. returns true if player is mounted, nil otherwise
 -- pass a non-nil value for v1 to do a slow/thorough scan
+-- [ McP - Increased buff limit to 32, removed "problem_mounts" checking. It'll be heavier this way, but should work for every mount.
 function ItemRack_PlayerMounted(v1)
-
-	local i,buff,mounted
-
-	for i=1,24 do
-		buff = UnitBuff("player",i)
-		if buff then
-			if problem_mounts[buff] or v1 or string.find(buff,"QirajiCrystal_") then
-				-- hunter could be in group, could be warlock epic mount etc, check if this is truly a mount
-				-- or if v1 is set to true, always check every buff. sigh this is slow but really no way around it without more data from users
-				--McP[
-				Rack_TooltipScan:SetUnitBuff("player",i)
-				-- mountBuffText
-				local text = Rack_TooltipScanTextLeft2:GetText() or ""
-				for _, pat in ipairs(mountBuffText) do
-					if string.find(text, pat) then
-						mounted = true
-						i = 25
-						break -- stop after first match
-					end
-				end
-				--]McP
-			elseif string.find(buff,"Mount_") then
-				mounted = true
-				i = 25
-			end
-		else
-			i = 25
-		end
-	end
-
-	return mounted
+   for i = 1, 32 do
+      local buff = UnitBuff("player", i)
+      if not buff then
+         break
+      end
+      -- quick check - texture name contains "Mount_"
+      if string.find(buff, "Mount_", 1, true) then
+         return true
+      end
+      -- tooltip scan fallback
+      Rack_TooltipScan:SetUnitBuff("player", i)
+      local text = Rack_TooltipScanTextLeft2:GetText() or ""
+      for _, pat in ipairs(mountBuffText) do
+         if string.find(text, pat) then
+            return true
+         end
+      end
+   end
+   return false
 end
-
+-- ] McP
 -- returns the name of the form the player is in
 function ItemRack_GetForm()
 
@@ -5121,4 +5102,5 @@ function Rack.NoMoreRoom()
 	DEFAULT_CHAT_FRAME:AddMessage("ItemRack: Not enough room to complete the swap.")
 
 end
+
 
