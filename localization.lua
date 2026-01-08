@@ -363,5 +363,10 @@ ItemRack_DefaultEvents = {
 		["trigger"] = "PLAYER_UPDATE_RESTING",
 		["delay"] = 0,
 		["script"] = "if IsResting() and not IR_TOWN then EquipSet() IR_TOWN=1 elseif IR_TOWN then LoadSet() IR_TOWN=nil end\n--[[Equips a set while in a city or inn.]]"
+	},
+	["GBD Spec 1"] = {
+		["trigger"] = "ITEMRACK_GBD",
+		["delay"] = 0,
+		["script"] = "print(\"SPEC \"..arg1..\" activated\")",
 	}
 }

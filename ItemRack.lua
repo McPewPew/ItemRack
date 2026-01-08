@@ -49,7 +49,7 @@ local problem_mounts = {
 	["Interface\\Icons\\Spell_Nature_SpiritWolf"] =1
 }
 
-local current_events_version = 1.975 -- use to control when to upgrade events
+local current_events_version = 1.98 -- use to control when to upgrade events
 
 -- defaults for ItemRack_Users
 local ItemRackOpt_Defaults = {
@@ -1211,6 +1211,9 @@ function ItemRack_OnLoad()
 
 	oldItemRack_UseAction = UseAction
 	UseAction = newItemRack_UseAction
+	
+	oIR_GossipTitleButton_OnClick = GossipTitleButton_OnClick
+	GossipTitleButton_OnClick = IR_GossipTitleButton_OnClick
 
 	this:RegisterEvent("PLAYER_LOGIN")
 end
@@ -1540,6 +1543,47 @@ function newItemRack_PaperDollFrame_OnHide()
 	oldItemRack_PaperDollFrame_OnHide()
 end
 
+function IR_GossipTitleButton_OnClick()
+	if this.type ~= "Available" and this.type ~= "Active" 
+		and GossipFrameNpcNameText:GetText() == "Goblin Brainwashing Device" then
+		-- TODO support localization of GBD name
+		-- first try to get spec by normal means
+			local actionText = this:GetText()
+			-- we only care about activating specs
+			local type = string.find(actionText, "Save", 1, true)
+			if type then 
+				return oIR_GossipTitleButton_OnClick() 
+			end
+			local _,_,specNum = string.find(actionText, "Activate (%d+).. Specialization")
+			if not specNum then
+			    -- try to find via GNS
+				local name = UnitName("player")
+				if GNS_SpecNames and GNS_SpecNames[name] then
+					_,_, specName = string.find(actionText, "^Activate%s*(.+) %([%d/]+%)$")
+					if specName then
+						for i=1,4 do
+							q = GNS_SpecNames[name][i]
+							if specName == GNS_SpecNames[name][i] then
+								specNum = i
+								break
+							end
+						end
+					end
+				end
+				if not specNum then
+					DEFAULT_CHAT_FRAME:AddMessage("Unable to find SpecNum: ".. tostring(specName))
+				end
+			end
+
+			if specNum and ItemRack_Settings.EnableEvents then
+				local holdarg1 = arg1
+				arg1 = specNum
+				ItemRack_RegisterFrame_OnEvent("ITEMRACK_GBD")
+				arg1 = holdarg1
+			end
+	end
+	oIR_GossipTitleButton_OnClick()
+end
 --[[ Inv Movement ]]--
 
 function ItemRack_InvFrame_OnMouseDown(arg1)
