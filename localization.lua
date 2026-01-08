@@ -4,6 +4,7 @@ ItemRackText = {}
 -- These three strings are the only ones required for the mod to work in other languages.  The rest are translations of benign text.
 ItemRackText.INVTYPE_CONTAINER = "Bag"
 ItemRackText.MOUNTCHECK = "^Increases speed" -- used only for checking if a mount buff is a real one
+ItemRackText.MOUNTCHECK2 = "^Speed scales with your Riding skill\.$"
 
 --[[ Key bindings ]]--
 

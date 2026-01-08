@@ -46,6 +46,7 @@ local problem_mounts = {
 	["Interface\\Icons\\Spell_Nature_Swiftness"] = 1,
 	["Interface\\Icons\\INV_Misc_Foot_Kodo"] = 1,
 	["Interface\\Icons\\Ability_Mount_JungleTiger"] =1,
+	["Interface\\Icons\\Spell_Nature_SpiritWolf"] =1
 }
 
 local current_events_version = 1.975 -- use to control when to upgrade events
@@ -3754,27 +3755,29 @@ function ItemRack_PlayerMounted(v1)
 
 	local i,buff,mounted
 
-	for i=1,24 do
+	for i=1,35 do
 		buff = UnitBuff("player",i)
 		if buff then
 			if problem_mounts[buff] or v1 or string.find(buff,"QirajiCrystal_") then
 				-- hunter could be in group, could be warlock epic mount etc, check if this is truly a mount
 				-- or if v1 is set to true, always check every buff. sigh this is slow but really no way around it without more data from users
 				Rack_TooltipScan:SetUnitBuff("player",i)
-				if string.find(Rack_TooltipScanTextLeft2:GetText() or "",ItemRackText.MOUNTCHECK) then
+				local str = Rack_TooltipScanTextLeft2:GetText() or ""
+				if string.find(str,ItemRackText.MOUNTCHECK) 
+					or string.find(str, ItemRackText.MOUNTCHECK2) then
 					mounted = true
-					i = 25
+					break
 				end
 			-- Separate handler for TWow's turtle mount
 			elseif string.find(buff,"inv_pet_speedy") then
 				mounted = true
-				i = 25
+				break
 			elseif string.find(buff,"Mount_") then
 				mounted = true
-				i = 25
+				break
 			end
 		else
-			i = 25
+			break
 		end
 	end
 
