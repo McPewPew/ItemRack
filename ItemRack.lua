@@ -1549,6 +1549,7 @@ function newItemRack_PaperDollFrame_OnHide()
 	oldItemRack_PaperDollFrame_OnHide()
 end
 
+-- Sleepybear - https://github.com/McPewPew/ItemRack/pull/13
 function IR_GossipTitleButton_OnClick()
 	if this.type ~= "Available" and this.type ~= "Active" 
 		and GossipFrameNpcNameText:GetText() == "Goblin Brainwashing Device" then
@@ -1561,7 +1562,6 @@ function IR_GossipTitleButton_OnClick()
 				return oIR_GossipTitleButton_OnClick() 
 			end
 			local aa,bb,specNum = string.find(actionText, "Activate (%d+).. Specialization")
-	--		print(actionText.." "..(aa or "nil").." "..(bb or "nil").." "..(specNum or "nil")) --mcp
 			if not specNum then
 			    -- try to find via GNS
 				local name = UnitName("player")
@@ -3814,9 +3814,7 @@ function ItemRack_PlayerMounted(v1)
 		buff,_,buffGUID = UnitBuff("player", i)
 		if buff then		
 			if IRTurtle then --turtles only
---			print("1")
 				if ItemRack.mountGUIDs[buffGUID] then  --mountGUIDs.lua
---					print("1a")
 					mounted = true
 					break
 				end
@@ -3824,12 +3822,10 @@ function ItemRack_PlayerMounted(v1)
 				Rack_TooltipScan:SetUnitBuff("player", i)
 				local str = Rack_TooltipScanTextLeft2:GetText() or ""
 				if string.find(str, ItemRackText.MOUNTCHECK2) then
---					print("2")
 					mounted = true
 					break
 				end	
 			else --non-turles
---				print("oh bother")
 				if problem_mounts[buff] or v1 or string.find(buff, "QirajiCrystal_") then
 					-- hunter could be in group, could be warlock epic mount etc, check if this is truly a mount
 					-- or if v1 is set to true, always check every buff. sigh this is slow but really no way around it without more data from users
