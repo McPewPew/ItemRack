@@ -3799,52 +3799,55 @@ function ItemRack_ToggleSet(setname)
 	Rack.ToggleSet(setname)
 end
 
---[[ Event script helper functions
+--Event script helper functions
+--These are not necessary.  They can be completely encapsulated in the scripts themselves.  They're here for convenience.
 
-	These are not necessary.  They can be completely encapsulated in the scripts themselves.  They're here for convenience. ]]
-
--- this is a special function to use for mount events. returns true if player is mounted, nil otherwise
--- pass a non-nil value for v1 to do a slow/thorough scan
--- returns true if player is mounted, nil otherwise
--- pass non-nil v1 to do a slow/thorough scan (legacy path only)
+--this is a special function to use for mount events. returns true if player is mounted, nil otherwise
+--pass a non-nil value for v1 to do a slow/thorough scan
 function ItemRack_PlayerMounted(v1)
-	local i, buff, mounted, buffGUID
+  local i, buff, buffGUID
 
-	for i = 1, 32 do
-		buff,_,buffGUID = UnitBuff("player", i)
-		if buff then		
-			if IRTurtle then --turtles only
-				if ItemRack.mountGUIDs[buffGUID] then  --mountGUIDs.lua
-					mounted = true
-					break
-				end
-				--fallback for mounts missing from ItemRack.mountGUIDs{}
-				Rack_TooltipScan:SetUnitBuff("player", i)
-				local str = Rack_TooltipScanTextLeft2:GetText() or ""
-				if string.find(str, ItemRackText.MOUNTCHECK2) then
-					mounted = true
-					break
-				end	
-			else --non-turles
-				if problem_mounts[buff] or v1 or string.find(buff, "QirajiCrystal_") then
-					-- hunter could be in group, could be warlock epic mount etc, check if this is truly a mount
-					-- or if v1 is set to true, always check every buff. sigh this is slow but really no way around it without more data from users
-					Rack_TooltipScan:SetUnitBuff("player", i)
-					local str = Rack_TooltipScanTextLeft2:GetText() or ""
-					if string.find(str, ItemRackText.MOUNTCHECK) then
-						mounted = true
-						break
-					end		
-				elseif string.find(buff, "Mount_") then
-					mounted = true
-					break
-				end
-			end
-		else 
-			break
-		end
-	end
-	return mounted
+  for i = 1, 32 do
+    buff, _, buffGUID = UnitBuff("player", i)
+    if not buff then
+      break
+    end
+
+    if IRTurtle then
+      --turtle fast track GUID matching
+      if not v1 then
+        if buffGUID and ItemRack.mountGUIDs and ItemRack.mountGUIDs[buffGUID] then
+          return true
+        end
+
+      --if v1 is set "ItemRack_PlayerMounted(true)" in event, then tooltip search
+      else
+        Rack_TooltipScan:SetUnitBuff("player", i)
+        local str = Rack_TooltipScanTextLeft2:GetText() or ""
+
+        if string.find(str, ItemRackText.MOUNTCHECK2)
+           or string.find(str, ItemRackText.MOUNTCHECK3) then
+          return true
+        end
+      end
+
+    else
+      --non-turtle :'(
+      if (problem_mounts and problem_mounts[buff]) or v1 or string.find(buff, "QirajiCrystal_") then
+        Rack_TooltipScan:SetUnitBuff("player", i)
+        local str = Rack_TooltipScanTextLeft2:GetText() or ""
+        if string.find(str, ItemRackText.MOUNTCHECK)
+           or string.find(str, ItemRackText.MOUNTCHECK2)
+           or string.find(str, ItemRackText.MOUNTCHECK3) then
+          return true
+        end
+      elseif string.find(buff, "Mount_") then
+        return true
+      end
+    end
+  end
+
+  return nil
 end
 
 -- returns the name of the form the player is in
