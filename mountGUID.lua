@@ -277,7 +277,7 @@ ItemRack.mountGUIDs = {
     [42033] = true, -- Armored Ebon Gryphon
     [42034] = true, -- Argent Hippogryph
     [45001] = true, -- Azure Spectral Tiger
-    [450079] = true, -- Magic Rooster
+    [45007] = true, -- Magic Rooster
     [45008] = true, -- White Riding Bear
     [45009] = true, -- Black Riding Bear
     [45010] = true, -- Ash Riding Bear
@@ -475,3 +475,4 @@ ItemRack.mountGUIDs = {
     [58041] = true, -- Red Feral Raptor
     [58042] = true, -- Corrupted Feral Raptor
 }
+
