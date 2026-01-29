@@ -35,20 +35,27 @@ ItemRack_Settings = {			-- These settings are for all users:
 -- all event scripts are stored globally in this saved variable.  Defaults are in localization.lua
 ItemRack_Events = {}
 
-ItemRack_Version = 1.975
+ItemRack_Version = 1.98
 
 --[[ Local Variables ]]--
 
--- some mount textures share non-mount buff textures, if you run across one put it here
-local problem_mounts = {
-	["Interface\\Icons\\Ability_Mount_PinkTiger"] = 1,
-	["Interface\\Icons\\Ability_Mount_WhiteTiger"] = 1,
-	["Interface\\Icons\\Spell_Nature_Swiftness"] = 1,
-	["Interface\\Icons\\INV_Misc_Foot_Kodo"] = 1,
-	["Interface\\Icons\\Ability_Mount_JungleTiger"] =1,
-}
+local IRTurtle = nil
+if TURTLE_WOW_VERSION then
+	IRTurtle = true 
+else
+	IRTurtle = false
+	-- some mount textures share non-mount buff textures, if you run across one put it here
+	problem_mounts = {
+		["Interface\\Icons\\Ability_Mount_PinkTiger"] = 1,
+		["Interface\\Icons\\Ability_Mount_WhiteTiger"] = 1,
+		["Interface\\Icons\\Spell_Nature_Swiftness"] = 1,
+		["Interface\\Icons\\INV_Misc_Foot_Kodo"] = 1,
+		["Interface\\Icons\\Ability_Mount_JungleTiger"] = 1,
+		["Interface\\Icons\\Spell_Nature_SpiritWolf"] = 1,
+	}
+end
 
-local current_events_version = 1.975 -- use to control when to upgrade events
+local current_events_version = 1.985 -- use to control when to upgrade events
 
 -- defaults for ItemRack_Users
 local ItemRackOpt_Defaults = {
@@ -1210,6 +1217,9 @@ function ItemRack_OnLoad()
 
 	oldItemRack_UseAction = UseAction
 	UseAction = newItemRack_UseAction
+	
+	oIR_GossipTitleButton_OnClick = GossipTitleButton_OnClick
+	GossipTitleButton_OnClick = IR_GossipTitleButton_OnClick
 
 	this:RegisterEvent("PLAYER_LOGIN")
 end
@@ -1539,6 +1549,48 @@ function newItemRack_PaperDollFrame_OnHide()
 	oldItemRack_PaperDollFrame_OnHide()
 end
 
+function IR_GossipTitleButton_OnClick()
+	if this.type ~= "Available" and this.type ~= "Active" 
+		and GossipFrameNpcNameText:GetText() == "Goblin Brainwashing Device" then
+		-- TODO support localization of GBD name
+		-- first try to get spec by normal means
+			local actionText = this:GetText()
+			-- we only care about activating specs
+			local type = string.find(actionText, "Save", 1, true)
+			if type then 
+				return oIR_GossipTitleButton_OnClick() 
+			end
+			local aa,bb,specNum = string.find(actionText, "Activate (%d+).. Specialization")
+	--		print(actionText.." "..(aa or "nil").." "..(bb or "nil").." "..(specNum or "nil")) --mcp
+			if not specNum then
+			    -- try to find via GNS
+				local name = UnitName("player")
+				if GNS_SpecNames and GNS_SpecNames[name] then
+					_,_, specName = string.find(actionText, "^Activate%s*(.+) %([%d/]+%)$")
+					if specName then
+						for i=1,4 do
+							q = GNS_SpecNames[name][i]
+							if specName == GNS_SpecNames[name][i] then
+								specNum = i
+								break
+							end
+						end
+					end
+				end
+				if not specNum then
+					DEFAULT_CHAT_FRAME:AddMessage("Unable to find SpecNum: ".. tostring(specName))
+				end
+			end
+
+			if specNum and ItemRack_Settings.EnableEvents == "ON" then
+				local holdarg1 = arg1
+				arg1 = specNum
+				ItemRack_RegisterFrame_OnEvent("ITEMRACK_GBD")
+				arg1 = holdarg1
+			end
+	end
+	oIR_GossipTitleButton_OnClick()
+end
 --[[ Inv Movement ]]--
 
 function ItemRack_InvFrame_OnMouseDown(arg1)
@@ -3242,9 +3294,9 @@ end
 -- changes the font size in the event edit window
 function ItemRack_ChangeEventFont()
 	if ItemRack_Settings.LargeFont=="ON" then
-		ItemRack_EventScript:SetFont("Fonts\\ARIALN.TTF",15)
+		ItemRack_EventScript:SetFont("Fonts\\FRIZQT__.TTF",12)
 	else
-		ItemRack_EventScript:SetFont("Fonts\\FRIZQT__.TTF",11)
+		ItemRack_EventScript:SetFont("Fonts\\FRIZQT__.TTF",9)
 	end
 end
 
@@ -3336,13 +3388,16 @@ function ItemRack_Events_ScrollFrame_Update()
 		idx = offset + i
 		button = getglobal("ItemRack_Event"..i)
 		if idx<eventListSize then
+			local eventsNames = getglobal("ItemRack_Event"..i.."Name")
 			if ItemRack_Settings.ShowAllEvents=="ON" then
-				getglobal("ItemRack_Event"..i.."Name"):SetText(eventList[idx].name)
+				eventsNames:SetText(eventList[idx].name)
 			else
 				_,_,name = string.find(eventList[idx].name,"^.+%:(.+)")
 				name = name or eventList[idx].name
-				getglobal("ItemRack_Event"..i.."Name"):SetText(name)
+				eventsNames:SetText(name)
 			end
+			eventsNames:SetFont("Fonts\\FRIZQT__.TTF",9)
+			
 			icon = getglobal("ItemRack_Event"..i.."Icon")
 			enable = getglobal("ItemRack_Event"..i.."Enable")
 			if eventList[idx].setname then
@@ -3750,34 +3805,49 @@ end
 
 -- this is a special function to use for mount events. returns true if player is mounted, nil otherwise
 -- pass a non-nil value for v1 to do a slow/thorough scan
+-- returns true if player is mounted, nil otherwise
+-- pass non-nil v1 to do a slow/thorough scan (legacy path only)
 function ItemRack_PlayerMounted(v1)
+	local i, buff, mounted, buffGUID
 
-	local i,buff,mounted
-
-	for i=1,24 do
-		buff = UnitBuff("player",i)
-		if buff then
-			if problem_mounts[buff] or v1 or string.find(buff,"QirajiCrystal_") then
-				-- hunter could be in group, could be warlock epic mount etc, check if this is truly a mount
-				-- or if v1 is set to true, always check every buff. sigh this is slow but really no way around it without more data from users
-				Rack_TooltipScan:SetUnitBuff("player",i)
-				if string.find(Rack_TooltipScanTextLeft2:GetText() or "",ItemRackText.MOUNTCHECK) then
+	for i = 1, 32 do
+		buff,_,buffGUID = UnitBuff("player", i)
+		if buff then		
+			if IRTurtle then --turtles only
+--			print("1")
+				if ItemRack.mountGUIDs[buffGUID] then  --mountGUIDs.lua
+--					print("1a")
 					mounted = true
-					i = 25
+					break
 				end
-			-- Separate handler for TWow's turtle mount
-			elseif string.find(buff,"inv_pet_speedy") then
-				mounted = true
-				i = 25
-			elseif string.find(buff,"Mount_") then
-				mounted = true
-				i = 25
+				--fallback for mounts missing from ItemRack.mountGUIDs{}
+				Rack_TooltipScan:SetUnitBuff("player", i)
+				local str = Rack_TooltipScanTextLeft2:GetText() or ""
+				if string.find(str, ItemRackText.MOUNTCHECK2) then
+--					print("2")
+					mounted = true
+					break
+				end	
+			else --non-turles
+--				print("oh bother")
+				if problem_mounts[buff] or v1 or string.find(buff, "QirajiCrystal_") then
+					-- hunter could be in group, could be warlock epic mount etc, check if this is truly a mount
+					-- or if v1 is set to true, always check every buff. sigh this is slow but really no way around it without more data from users
+					Rack_TooltipScan:SetUnitBuff("player", i)
+					local str = Rack_TooltipScanTextLeft2:GetText() or ""
+					if string.find(str, ItemRackText.MOUNTCHECK) then
+						mounted = true
+						break
+					end		
+				elseif string.find(buff, "Mount_") then
+					mounted = true
+					break
+				end
 			end
-		else
-			i = 25
+		else 
+			break
 		end
 	end
-
 	return mounted
 end
 

@@ -4,6 +4,7 @@ ItemRackText = {}
 -- These three strings are the only ones required for the mod to work in other languages.  The rest are translations of benign text.
 ItemRackText.INVTYPE_CONTAINER = "Bag"
 ItemRackText.MOUNTCHECK = "^Increases speed" -- used only for checking if a mount buff is a real one
+ItemRackText.MOUNTCHECK2 = "^Speed scales with your Riding skill\.$"
 
 --[[ Key bindings ]]--
 
@@ -362,5 +363,68 @@ ItemRack_DefaultEvents = {
 		["trigger"] = "PLAYER_UPDATE_RESTING",
 		["delay"] = 0,
 		["script"] = "if IsResting() and not IR_TOWN then EquipSet() IR_TOWN=1 elseif IR_TOWN then LoadSet() IR_TOWN=nil end\n--[[Equips a set while in a city or inn.]]"
-	}
+	},
+	["Brainwashing 1"] = {
+    ["trigger"] = "ITEMRACK_GBD",
+    ["delay"] = 0.1,
+    ["script"] =
+        "local spec = tonumber(arg1)\n" ..
+        "if spec == 1 then\n" ..
+        "  EquipSet()\n" ..
+        "  DEFAULT_CHAT_FRAME:AddMessage(\"ItemRack - 1st Goblin Brainwashing Device set equipped\")\n" ..
+        "end",
+	},
+	["Brainwashing 2"] = {
+    ["trigger"] = "ITEMRACK_GBD",
+    ["delay"] = 0.1,
+    ["script"] =
+        "local spec = tonumber(arg1)\n" ..
+        "if spec == 2 then\n" ..
+        "  EquipSet()\n" ..
+        "  DEFAULT_CHAT_FRAME:AddMessage(\"ItemRack - 2nd Goblin Brainwashing Device set equipped\")\n" ..
+        "end",
+	},
+	["Brainwashing 3"] = {
+    ["trigger"] = "ITEMRACK_GBD",
+    ["delay"] = 0.1,
+    ["script"] =
+        "local spec = tonumber(arg1)\n" ..
+        "if spec == 3 then\n" ..
+        "  EquipSet()\n" ..
+        "  DEFAULT_CHAT_FRAME:AddMessage(\"ItemRack - 3rd Goblin Brainwashing Device set equipped\")\n" ..
+        "end",
+	},
+	["Brainwashing 4"] = {
+    ["trigger"] = "ITEMRACK_GBD",
+    ["delay"] = 0.1,
+    ["script"] =
+        "local spec = tonumber(arg1)\n" ..
+        "if spec == 4 then\n" ..
+        "  EquipSet()\n" ..
+        "  DEFAULT_CHAT_FRAME:AddMessage(\"ItemRack - 4th Goblin Brainwashing Device set equipped\")\n" ..
+        "end",
+	},
+	["Mount(Not ZG/AQ)"] = {
+	["trigger"] = "PLAYER_AURAS_CHANGED",
+	["delay"] = 0,
+	["script"] =
+		"local mount = ItemRack_PlayerMounted()\n"..
+		"local zone = GetRealZoneText()\n"..
+		"local outdoorRaid = (zone == \"Ahn'Qiraj\" or zone == \"Zul'Gurub\" or zone == \"Ruins of Ahn'Qiraj\")\n"..
+		"\n"..
+		"if outdoorRaid then\n"..
+		"  if IR_MOUNT and not mount then\n"..
+		"    LoadSet()\n"..
+		"  end\n"..
+		"  IR_MOUNT = mount\n"..
+		"  return\n"..
+		"end\n"..
+		"if not IR_MOUNT and mount then\n"..
+		"  EquipSet()\n"..
+		"elseif IR_MOUNT and not mount then\n"..
+		"  LoadSet()\n"..
+		"end\n"..
+		"IR_MOUNT = mount\n"..
+		"--[[Equips mount set as normal unless in ZG or AQ]]",
+	},
 }
