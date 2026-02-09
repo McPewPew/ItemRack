@@ -15,11 +15,12 @@ ItemRackText.GBD = "Goblin Brainwashing Device"
 ItemRackText.GBDSave = "Save"
 
 --spec number pattern "Activate ..." line
-ItemRackText.GBDSpec = "Activate ([1-4]).. Specialization" --"Activate (%d+).*Specialization"
+ItemRackText.GBDSpec = "Activate (%d).. Specialization"
 
---spec name pattern (GNS fallback)
+--currently unused
+--spec name pattern (GNS)
 --example: "Activate HolyProclaim (16/35/0)"
-ItemRackText.GNS = "^Activate%s*(.+) %([%d/]+%)$"
+--ItemRackText.GNS = "^Activate%s*(.+) %([%d/]+%)$"
 
 
 --[[ Key bindings ]]--
@@ -227,21 +228,17 @@ end
 
 --Chinese translation attempt
 if (GetLocale() == "zhCN") then
-	ItemRackText.MOUNTCHECK = "^Increases speed"
-	ItemRackText.MOUNTCHECK2 = "^Speed scales with your Riding skill\.$"
-	ItemRackText.MOUNTCHECK3 = "^Slow and steady%.%.%.$"
+	ItemRackText.MOUNTCHECK = "^速度提高" --"Increases speed by" 
+	ItemRackText.MOUNTCHECK2 = "^Speed scales with your Riding skill\.$" -- Most Turtle WoW mounts
+	ItemRackText.MOUNTCHECK3 = "^Slow and steady%.%.%.$" -- Turtle mount
 
 	ItemRackText.GBD = "地精洗脑装置"
 
-	--ignore "Save ..." options
+	--ignore lines starting with "Save ..."
 	ItemRackText.GBDSave = "保存"
 
 	-- Example: "启用第1天赋。 (5/41/5)"
-	ItemRackText.GBDSpec = "启用第(%d+)天赋"
-
-	--GNS support
-	--example: "Activate HolyProclaim (16/35/0)"
-	ItemRackText.GNS = "^启用%s*(.+) %([%d/]+%)$"
+	ItemRackText.GBDSpec = "^启用第(%d)天赋"
 end
 
 --[[ Extra Icons 
