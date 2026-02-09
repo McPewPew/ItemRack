@@ -2,8 +2,25 @@
 ItemRackText = {}
 
 -- These three strings are the only ones required for the mod to work in other languages.  The rest are translations of benign text.
+-- The above is no longer true, due to the addition of the Goglin Brainwashing Device 
 ItemRackText.INVTYPE_CONTAINER = "Bag"
 ItemRackText.MOUNTCHECK = "^Increases speed" -- used only for checking if a mount buff is a real one
+ItemRackText.MOUNTCHECK2 = "^Speed scales with your Riding skill\.$"
+ItemRackText.MOUNTCHECK3 = "^Slow and steady%.%.%.$"
+
+--Goblin Brainwashing Device (GBD) integration
+ItemRackText.GBD = "Goblin Brainwashing Device"
+
+--ignore "Save..." lines
+ItemRackText.GBDSave = "Save"
+
+--spec number pattern "Activate ..." line
+ItemRackText.GBDSpec = "Activate ([1-4]).. Specialization" --"Activate (%d+).*Specialization"
+
+--spec name pattern (GNS fallback)
+--example: "Activate HolyProclaim (16/35/0)"
+ItemRackText.GNS = "^Activate%s*(.+) %([%d/]+%)$"
+
 
 --[[ Key bindings ]]--
 
@@ -208,6 +225,25 @@ if (GetLocale() == "frFR") then
 	ItemRackText.MOUNTCHECK = "^Augmente la vitesse de"
 end
 
+--Chinese translation attempt
+if (GetLocale() == "zhCN") then
+	ItemRackText.MOUNTCHECK = "^Increases speed"
+	ItemRackText.MOUNTCHECK2 = "^Speed scales with your Riding skill\.$"
+	ItemRackText.MOUNTCHECK3 = "^Slow and steady%.%.%.$"
+
+	ItemRackText.GBD = "地精洗脑装置"
+
+	--ignore "Save ..." options
+	ItemRackText.GBDSave = "保存"
+
+	-- Example: "启用第1天赋。 (5/41/5)"
+	ItemRackText.GBDSpec = "启用第(%d+)天赋"
+
+	--GNS support
+	--example: "Activate HolyProclaim (16/35/0)"
+	ItemRackText.GNS = "^启用%s*(.+) %([%d/]+%)$"
+end
+
 --[[ Extra Icons 
 
 	Here you can add more icons available for use in the set builder.
@@ -362,5 +398,68 @@ ItemRack_DefaultEvents = {
 		["trigger"] = "PLAYER_UPDATE_RESTING",
 		["delay"] = 0,
 		["script"] = "if IsResting() and not IR_TOWN then EquipSet() IR_TOWN=1 elseif IR_TOWN then LoadSet() IR_TOWN=nil end\n--[[Equips a set while in a city or inn.]]"
-	}
+	},
+	["Brainwashing 1"] = {
+    ["trigger"] = "ITEMRACK_GBD",
+    ["delay"] = 0.1,
+    ["script"] =
+        "local spec = tonumber(arg1)\n" ..
+        "if spec == 1 then\n" ..
+        "  EquipSet()\n" ..
+        "  DEFAULT_CHAT_FRAME:AddMessage(\"ItemRack - 1st Goblin Brainwashing Device set equipped\")\n" ..
+        "end",
+	},
+	["Brainwashing 2"] = {
+    ["trigger"] = "ITEMRACK_GBD",
+    ["delay"] = 0.1,
+    ["script"] =
+        "local spec = tonumber(arg1)\n" ..
+        "if spec == 2 then\n" ..
+        "  EquipSet()\n" ..
+        "  DEFAULT_CHAT_FRAME:AddMessage(\"ItemRack - 2nd Goblin Brainwashing Device set equipped\")\n" ..
+        "end",
+	},
+	["Brainwashing 3"] = {
+    ["trigger"] = "ITEMRACK_GBD",
+    ["delay"] = 0.1,
+    ["script"] =
+        "local spec = tonumber(arg1)\n" ..
+        "if spec == 3 then\n" ..
+        "  EquipSet()\n" ..
+        "  DEFAULT_CHAT_FRAME:AddMessage(\"ItemRack - 3rd Goblin Brainwashing Device set equipped\")\n" ..
+        "end",
+	},
+	["Brainwashing 4"] = {
+    ["trigger"] = "ITEMRACK_GBD", 
+    ["delay"] = 0.1,
+    ["script"] =
+        "local spec = tonumber(arg1)\n" ..
+        "if spec == 4 then\n" ..
+        "  EquipSet()\n" ..
+        "  DEFAULT_CHAT_FRAME:AddMessage(\"ItemRack - 4th Goblin Brainwashing Device set equipped\")\n" ..
+        "end",
+	},
+	["Mount(Not ZG/AQ)"] = {
+	["trigger"] = "PLAYER_AURAS_CHANGED",
+	["delay"] = 0,
+	["script"] =
+		"local mount = ItemRack_PlayerMounted()\n"..
+		"local zone = GetRealZoneText()\n"..
+		"local outdoorRaid = (zone == \"Ahn'Qiraj\" or zone == \"Zul'Gurub\" or zone == \"Ruins of Ahn'Qiraj\")\n"..
+		"\n"..
+		"if outdoorRaid then\n"..
+		"  if IR_MOUNT and not mount then\n"..
+		"    LoadSet()\n"..
+		"  end\n"..
+		"  IR_MOUNT = mount\n"..
+		"  return\n"..
+		"end\n"..
+		"if not IR_MOUNT and mount then\n"..
+		"  EquipSet()\n"..
+		"elseif IR_MOUNT and not mount then\n"..
+		"  LoadSet()\n"..
+		"end\n"..
+		"IR_MOUNT = mount\n"..
+		"--[[Equips mount set as normal unless in ZG or AQ]]",
+	},
 }

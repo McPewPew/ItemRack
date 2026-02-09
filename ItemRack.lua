@@ -35,18 +35,27 @@ ItemRack_Settings = {			-- These settings are for all users:
 -- all event scripts are stored globally in this saved variable.  Defaults are in localization.lua
 ItemRack_Events = {}
 
-ItemRack_Version = 1.975
+ItemRack_Version = 1.98
 
 --[[ Local Variables ]]--
---McP
-local mountBuffText = {
-   ItemRackText.MOUNTCHECK,
-   "^Speed scales",
-   "^Slow and steady",
-}
---McP
 
-local current_events_version = 1.975 -- use to control when to upgrade events
+local IRTurtle = nil
+if TURTLE_WOW_VERSION then
+	IRTurtle = true 
+else
+	IRTurtle = false
+	-- some mount textures share non-mount buff textures, if you run across one put it here
+	problem_mounts = {
+		["Interface\\Icons\\Ability_Mount_PinkTiger"] = 1,
+		["Interface\\Icons\\Ability_Mount_WhiteTiger"] = 1,
+		["Interface\\Icons\\Spell_Nature_Swiftness"] = 1,
+		["Interface\\Icons\\INV_Misc_Foot_Kodo"] = 1,
+		["Interface\\Icons\\Ability_Mount_JungleTiger"] = 1,
+		["Interface\\Icons\\Spell_Nature_SpiritWolf"] = 1,
+	}
+end
+
+local current_events_version = 1.985 -- use to control when to upgrade events
 
 -- defaults for ItemRack_Users
 local ItemRackOpt_Defaults = {
@@ -1208,6 +1217,9 @@ function ItemRack_OnLoad()
 
 	oldItemRack_UseAction = UseAction
 	UseAction = newItemRack_UseAction
+	
+	oIR_GossipTitleButton_OnClick = GossipTitleButton_OnClick
+	GossipTitleButton_OnClick = IR_GossipTitleButton_OnClick
 
 	this:RegisterEvent("PLAYER_LOGIN")
 end
@@ -1535,6 +1547,95 @@ function newItemRack_PaperDollFrame_OnHide()
 	end
 
 	oldItemRack_PaperDollFrame_OnHide()
+end
+
+--[[ Sleepybear - https://github.com/McPewPew/ItemRack/pull/13
+function IR_GossipTitleButton_OnClick()
+	if this.type ~= "Available" and this.type ~= "Active" 
+		and GossipFrameNpcNameText:GetText() == "Goblin Brainwashing Device" then
+		-- TODO support localization of GBD name
+		-- first try to get spec by normal means
+			local actionText = this:GetText()
+			-- we only care about activating specs
+			local type = string.find(actionText, "Save", 1, true)
+			if type then 
+				return oIR_GossipTitleButton_OnClick() 
+			end
+			local aa,bb,specNum = string.find(actionText, "Activate (%d+).. Specialization")
+			if not specNum then
+			    -- try to find via GNS
+				local name = UnitName("player")
+				if GNS_SpecNames and GNS_SpecNames[name] then
+					_,_, specName = string.find(actionText, "^Activate%s*(.+) %([%d/]+%)$")
+					if specName then
+						for i=1,4 do
+							q = GNS_SpecNames[name][i]
+							if specName == GNS_SpecNames[name][i] then
+								specNum = i
+								break
+							end
+						end
+					end
+				end
+				if not specNum then
+					DEFAULT_CHAT_FRAME:AddMessage("Unable to find SpecNum: ".. tostring(specName))
+				end
+			end
+
+			if specNum and ItemRack_Settings.EnableEvents == "ON" then
+				local holdarg1 = arg1
+				arg1 = specNum
+				ItemRack_RegisterFrame_OnEvent("ITEMRACK_GBD")
+				arg1 = holdarg1
+			end
+	end
+	oIR_GossipTitleButton_OnClick()
+end ]]--
+
+function IR_GossipTitleButton_OnClick()
+	if this.type ~= "Available" and this.type ~= "Active"
+		--localized 
+		and GossipFrameNpcNameText:GetText() == ItemRackText.GBD then
+		--first try to get spec by normal means
+		local actionText = this:GetText()
+
+		--we only care about activating specs, ignore "Save ..." entries
+		if string.find(actionText, ItemRackText.GBDSave, 1, true) then
+			return oIR_GossipTitleButton_OnClick()
+		end
+
+		--try to extract spec number
+		local _, _, specNum = string.find(actionText, ItemRackText.GBDSpec)
+
+		if not specNum then
+			-- try to find via GNS
+			local name = UnitName("player")
+			if GNS_SpecNames and GNS_SpecNames[name] then
+				local _,_, specName = string.find(actionText, "^Activate%s*(.+) %([%d/]+%)$")
+				if specName then
+					for i = 1, 4 do
+						if specName == GNS_SpecNames[name][i] then
+							specNum = i
+							break
+						end
+					end
+				end
+			end
+
+			if not specNum then
+				DEFAULT_CHAT_FRAME:AddMessage("Unable to find SpecNum: "..tostring(actionText))
+			end
+		end
+
+		if specNum and ItemRack_Settings.EnableEvents == "ON" then
+			local holdarg1 = arg1
+			arg1 = specNum
+			ItemRack_RegisterFrame_OnEvent("ITEMRACK_GBD")
+			arg1 = holdarg1
+		end
+	end
+
+	oIR_GossipTitleButton_OnClick()
 end
 
 --[[ Inv Movement ]]--
@@ -3240,9 +3341,9 @@ end
 -- changes the font size in the event edit window
 function ItemRack_ChangeEventFont()
 	if ItemRack_Settings.LargeFont=="ON" then
-		ItemRack_EventScript:SetFont("Fonts\\ARIALN.TTF",15)
+		ItemRack_EventScript:SetFont("Fonts\\FRIZQT__.TTF",12)
 	else
-		ItemRack_EventScript:SetFont("Fonts\\FRIZQT__.TTF",11)
+		ItemRack_EventScript:SetFont("Fonts\\FRIZQT__.TTF",9)
 	end
 end
 
@@ -3334,13 +3435,16 @@ function ItemRack_Events_ScrollFrame_Update()
 		idx = offset + i
 		button = getglobal("ItemRack_Event"..i)
 		if idx<eventListSize then
+			local eventsNames = getglobal("ItemRack_Event"..i.."Name")
 			if ItemRack_Settings.ShowAllEvents=="ON" then
-				getglobal("ItemRack_Event"..i.."Name"):SetText(eventList[idx].name)
+				eventsNames:SetText(eventList[idx].name)
 			else
 				_,_,name = string.find(eventList[idx].name,"^.+%:(.+)")
 				name = name or eventList[idx].name
-				getglobal("ItemRack_Event"..i.."Name"):SetText(name)
+				eventsNames:SetText(name)
 			end
+			eventsNames:SetFont("Fonts\\FRIZQT__.TTF",9)
+			
 			icon = getglobal("ItemRack_Event"..i.."Icon")
 			enable = getglobal("ItemRack_Event"..i.."Enable")
 			if eventList[idx].setname then
@@ -3742,35 +3846,57 @@ function ItemRack_ToggleSet(setname)
 	Rack.ToggleSet(setname)
 end
 
---[[ Event script helper functions
+--Event script helper functions
+--These are not necessary.  They can be completely encapsulated in the scripts themselves.  They're here for convenience.
 
-	These are not necessary.  They can be completely encapsulated in the scripts themselves.  They're here for convenience. ]]
-
--- this is a special function to use for mount events. returns true if player is mounted, nil otherwise
--- pass a non-nil value for v1 to do a slow/thorough scan
--- [ McP - Increased buff limit to 32, removed "problem_mounts" checking. It'll be heavier this way, but should work for every mount.
+--this is a special function to use for mount events. returns true if player is mounted, nil otherwise
+--pass a non-nil value for v1 to do a slow/thorough scan
 function ItemRack_PlayerMounted(v1)
-   for i = 1, 32 do
-      local buff = UnitBuff("player", i)
-      if not buff then
-         break
+  local i, buff, buffGUID
+
+  for i = 1, 32 do
+    buff, _, buffGUID = UnitBuff("player", i)
+    if not buff then
+      break
+    end
+
+    if IRTurtle then
+      --turtle fast track GUID matching
+      if not v1 then
+        if buffGUID and ItemRack.mountGUIDs and ItemRack.mountGUIDs[buffGUID] then
+          return true
+        end
+
+      --if v1 is set "ItemRack_PlayerMounted(true)" in event, then tooltip search
+      else
+        Rack_TooltipScan:SetUnitBuff("player", i)
+        local str = Rack_TooltipScanTextLeft2:GetText() or ""
+
+        if string.find(str, ItemRackText.MOUNTCHECK2)
+           or string.find(str, ItemRackText.MOUNTCHECK3) then
+          return true
+        end
       end
-      -- quick check - texture name contains "Mount_"
-      if string.find(buff, "Mount_", 1, true) then
-         return true
+
+    else
+      --non-turtle :'(
+      if (problem_mounts and problem_mounts[buff]) or v1 or string.find(buff, "QirajiCrystal_") then
+        Rack_TooltipScan:SetUnitBuff("player", i)
+        local str = Rack_TooltipScanTextLeft2:GetText() or ""
+        if string.find(str, ItemRackText.MOUNTCHECK)
+           or string.find(str, ItemRackText.MOUNTCHECK2)
+           or string.find(str, ItemRackText.MOUNTCHECK3) then
+          return true
+        end
+      elseif string.find(buff, "Mount_") then
+        return true
       end
-      -- tooltip scan fallback
-      Rack_TooltipScan:SetUnitBuff("player", i)
-      local text = Rack_TooltipScanTextLeft2:GetText() or ""
-      for _, pat in ipairs(mountBuffText) do
-         if string.find(text, pat) then
-            return true
-         end
-      end
-   end
-   return false
+    end
+  end
+
+  return nil
 end
--- ] McP
+
 -- returns the name of the form the player is in
 function ItemRack_GetForm()
 
@@ -5100,7 +5226,4 @@ end
 
 function Rack.NoMoreRoom()
 	DEFAULT_CHAT_FRAME:AddMessage("ItemRack: Not enough room to complete the swap.")
-
 end
-
-
