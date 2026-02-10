@@ -228,6 +228,7 @@ end
 
 --Chinese translation attempt
 if (GetLocale() == "zhCN") then
+	ItemRackText.INVTYPE_CONTAINER = "背包"
 	ItemRackText.MOUNTCHECK = "^速度提高" --"Increases speed by" 
 	ItemRackText.MOUNTCHECK2 = "^Speed scales with your Riding skill\.$" -- Most Turtle WoW mounts
 	ItemRackText.MOUNTCHECK3 = "^Slow and steady%.%.%.$" -- Turtle mount
@@ -459,4 +460,5 @@ ItemRack_DefaultEvents = {
 		"IR_MOUNT = mount\n"..
 		"--[[Equips mount set as normal unless in ZG or AQ]]",
 	},
+
 }
