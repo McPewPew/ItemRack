@@ -232,13 +232,14 @@ if (GetLocale() == "zhCN") then
 	ItemRackText.MOUNTCHECK = "^速度提高" --"Increases speed by" 
 	ItemRackText.MOUNTCHECK2 = "^Speed scales with your Riding skill\.$" -- Most Turtle WoW mounts
 	ItemRackText.MOUNTCHECK3 = "^Slow and steady%.%.%.$" -- Turtle mount
-
+	
+	--"Goblin Brainwashing Device"
 	ItemRackText.GBD = "地精洗脑装置"
 
-	--ignore lines starting with "Save ..."
+	--ignore lines starting with "Save"
 	ItemRackText.GBDSave = "保存"
 
-	-- Example: "启用第1天赋。 (5/41/5)"
+	--example - "启用第1天赋。 (5/41/5)"
 	ItemRackText.GBDSpec = "^启用第(%d)天赋"
 end
 
@@ -462,3 +463,4 @@ ItemRack_DefaultEvents = {
 	},
 
 }
+
