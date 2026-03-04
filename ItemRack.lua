@@ -1809,7 +1809,7 @@ function ItemRack_Inv_OnClick(arg1)
 			remove_inv(id)
 			ItemRack_MenuFrame:Hide()
 		end
-	elseif arg1=="LeftButton" and IsShiftKeyDown() and ChatFrameEditBox:IsVisible() then
+	elseif arg1=="LeftButton" and IsShiftKeyDown() and ChatFrameEditBox:IsVisible() and id < 20 then
 		-- if Shift is down, link the item to chat
 		ChatFrameEditBox:Insert(GetInventoryItemLink("player",id))
 	else
@@ -1929,7 +1929,7 @@ function ItemRack_Menu_OnClick(arg1)
 		end
 		ItemRack_BuildMenu(ItemRack.InvOpen,ItemRack.MenuDockedTo)
 
-	elseif arg1=="LeftButton" and IsShiftKeyDown() and ChatFrameEditBox:IsVisible() then
+	elseif arg1=="LeftButton" and IsShiftKeyDown() and ChatFrameEditBox:IsVisible() and ItemRack.InvOpen < 20 then
 		-- if linking a menu item with shift+left click
 		ChatFrameEditBox:Insert(GetContainerItemLink(ItemRack.BaggedItems[id].bag,ItemRack.BaggedItems[id].slot))
 
