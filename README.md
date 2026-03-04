@@ -31,9 +31,12 @@ Mount detection via spell IDs with improved fallback handling.
 Automatically set switch when using the Goblin Brainwashing Device.  
 ***New events*** – "Brainwashing 1-4" activate the event for each specialization.
 
-<br>
+### Localization
+Initial Chinese (zhCN) client support has been added.  
+This includes localization for Goblin Brainwashing Device detection and mount tooltip parsing.
 <br>
 
+### FuBar
 If you want to use ItemRackFu, drag the ItemRackFu folder into the main Addons folder.
 
 ##

@@ -2,9 +2,26 @@
 ItemRackText = {}
 
 -- These three strings are the only ones required for the mod to work in other languages.  The rest are translations of benign text.
+-- The above is no longer true, due to the addition of the Goglin Brainwashing Device 
 ItemRackText.INVTYPE_CONTAINER = "Bag"
 ItemRackText.MOUNTCHECK = "^Increases speed" -- used only for checking if a mount buff is a real one
 ItemRackText.MOUNTCHECK2 = "^Speed scales with your Riding skill\.$"
+ItemRackText.MOUNTCHECK3 = "^Slow and steady%.%.%.$"
+
+--Goblin Brainwashing Device (GBD) integration
+ItemRackText.GBD = "Goblin Brainwashing Device"
+
+--ignore "Save..." lines
+ItemRackText.GBDSave = "Save"
+
+--spec number pattern "Activate ..." line
+ItemRackText.GBDSpec = "Activate (%d).. Specialization"
+
+--currently unused
+--spec name pattern (GNS)
+--example: "Activate HolyProclaim (16/35/0)"
+--ItemRackText.GNS = "^Activate%s*(.+) %([%d/]+%)$"
+
 
 --[[ Key bindings ]]--
 
@@ -209,6 +226,23 @@ if (GetLocale() == "frFR") then
 	ItemRackText.MOUNTCHECK = "^Augmente la vitesse de"
 end
 
+--Chinese translation attempt
+if (GetLocale() == "zhCN") then
+	ItemRackText.INVTYPE_CONTAINER = "背包"
+	ItemRackText.MOUNTCHECK = "^速度提高" --"Increases speed by" 
+	ItemRackText.MOUNTCHECK2 = "技能提高速度" -- Most Turtle WoW mounts
+	ItemRackText.MOUNTCHECK3 = "^又慢又稳" -- Turtle mount
+	
+	--"Goblin Brainwashing Device"
+	ItemRackText.GBD = "地精洗脑装置"
+
+	--ignore lines starting with "Save"
+	ItemRackText.GBDSave = "保存"
+
+	--example - "启用第1天赋。 (5/41/5)"
+	ItemRackText.GBDSpec = "^启用第(%d)天赋"
+end
+
 --[[ Extra Icons 
 
 	Here you can add more icons available for use in the set builder.
@@ -395,7 +429,7 @@ ItemRack_DefaultEvents = {
         "end",
 	},
 	["Brainwashing 4"] = {
-    ["trigger"] = "ITEMRACK_GBD",
+    ["trigger"] = "ITEMRACK_GBD", 
     ["delay"] = 0.1,
     ["script"] =
         "local spec = tonumber(arg1)\n" ..

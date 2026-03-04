@@ -475,4 +475,3 @@ ItemRack.mountGUIDs = {
     [58041] = true, -- Red Feral Raptor
     [58042] = true, -- Corrupted Feral Raptor
 }
-

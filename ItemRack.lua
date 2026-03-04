@@ -1,4 +1,4 @@
---[[ ItemRack 1.975 7/27/06 Gello ]]--
+--[[ ItemRack originally by Gello ]]--
 
 --[[ SavedVariables ]]--
 
@@ -1549,7 +1549,7 @@ function newItemRack_PaperDollFrame_OnHide()
 	oldItemRack_PaperDollFrame_OnHide()
 end
 
--- Sleepybear - https://github.com/McPewPew/ItemRack/pull/13
+--[[ Sleepybear - https://github.com/McPewPew/ItemRack/pull/13
 function IR_GossipTitleButton_OnClick()
 	if this.type ~= "Available" and this.type ~= "Active" 
 		and GossipFrameNpcNameText:GetText() == "Goblin Brainwashing Device" then
@@ -1590,7 +1590,54 @@ function IR_GossipTitleButton_OnClick()
 			end
 	end
 	oIR_GossipTitleButton_OnClick()
+end ]]--
+
+function IR_GossipTitleButton_OnClick()
+	if this.type ~= "Available" and this.type ~= "Active"
+		--localized 
+		and GossipFrameNpcNameText:GetText() == ItemRackText.GBD then
+		--first try to get spec by normal means
+		local actionText = this:GetText()
+
+		--we only care about activating specs, ignore "Save ..." entries
+		if string.find(actionText, ItemRackText.GBDSave, 1, true) then
+			return oIR_GossipTitleButton_OnClick()
+		end
+
+		--try to extract spec number
+		local _, _, specNum = string.find(actionText, ItemRackText.GBDSpec)
+
+		if not specNum then
+			-- try to find via GNS
+			local name = UnitName("player")
+			if GNS_SpecNames and GNS_SpecNames[name] then
+				local _,_, specName = string.find(actionText, "^Activate%s*(.+) %([%d/]+%)$")
+				if specName then
+					for i = 1, 4 do
+						if specName == GNS_SpecNames[name][i] then
+							specNum = i
+							break
+						end
+					end
+				end
+			end
+
+			if not specNum then
+				DEFAULT_CHAT_FRAME:AddMessage("Unable to find SpecNum: "..tostring(actionText))
+			end
+		end
+
+		if specNum and ItemRack_Settings.EnableEvents == "ON" then
+			local holdarg1 = arg1
+			arg1 = specNum
+			ItemRack_RegisterFrame_OnEvent("ITEMRACK_GBD")
+			arg1 = holdarg1
+		end
+	end
+
+	oIR_GossipTitleButton_OnClick()
 end
+
 --[[ Inv Movement ]]--
 
 function ItemRack_InvFrame_OnMouseDown(arg1)
