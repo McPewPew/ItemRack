@@ -354,9 +354,9 @@ function ItemRack_DockMenu(invslot,relativeTo)
 	local mainorient = ItemRack_Users[user].MainOrient
 	local ynudge -- amount if any to nudge the y offset
 
-	if relativeTo then
+	-- if relativeTo then
 		ItemRack.MenuDockedTo = relativeTo
-	end
+	-- end
 
 	if relativeTo=="MINIMAP" then
 		if (ItemRack_IconFrame:GetTop() or 0)<(UIParent:GetHeight() or 0)/2 then
@@ -606,13 +606,20 @@ end
 
 -- builds a menu outward from invslot (0-19)
 -- setframe = true if this is to dock to the set frame
+local cacheInvalid = true
+local prevSlot, prevRelativeTo
+local idx = 1
 function ItemRack_BuildMenu(invslot,relativeTo)
+	if prevSlot ~= invslot or prevRelativeTo ~= relativeTo then
+		cacheInvalid = true
+		prevSlot, prevRelativeTo = invslot, relativeTo
+	end
 
-	local idx,j,k,item,itemID,texture,name,equipslot,soulbound,found,count = 1
+	local item,itemID,texture,name,equipslot,soulbound,found,count
 	local mainorient = ItemRack_Users[user].MainOrient
 	local bagStart,bagEnd = 0,4
 
-	if invslot==0 then
+	if invslot==0 and cacheInvalid then
 		-- if this is an ammo slot, clear totals
 		for i in ItemRack.AmmoCounts do
 			ItemRack.AmmoCounts[i] = 0
@@ -620,51 +627,55 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 	end
 
 	if invslot<20 then
+		-- the following block is very expensive, do it when cache is invalid
+		if cacheInvalid then
+			idx = 1
+			if ItemRack.BankIsOpen then
+				bagStart,bagEnd = -1,10
+			end
 
-		if ItemRack.BankIsOpen then
-			bagStart,bagEnd = -1,10
-		end
-
-		-- go through bags and gather items into .BaggedItems
-		for i=bagStart,bagEnd do
-			for j=1,GetContainerNumSlots(i) do
-				texture,itemID,name,equipslot,soulbound,count = get_item_info(i,j)
-				soulbound = soulbound or ItemRack.Indexes[invslot].ignore_soulbound -- pretend item soulbound if flagged to ignore_soulbound
-				if (equipslot and ItemRack.Indexes[invslot][equipslot]) and (soulbound or ItemRack_Settings.Soulbound=="OFF") then
-					if ItemRack_Settings.AllowHidden=="ON" and ItemRack_Users[user].Ignore[name] and not IsAltKeyDown() then
-						-- skip items that are on ignore list
-					elseif player_can_wear(i,j,invslot) then
-						if invslot==0 and count then
-							-- if this is an ammo slot menu
-							ItemRack.AmmoCounts[name] = (ItemRack.AmmoCounts[name] or 0) + count
-							found = false
-							for k=1,(idx-1) do
-								if ItemRack.BaggedItems[k].name==name then
-									found=true
+			-- go through bags and gather items into .BaggedItems
+			for i=bagStart,bagEnd do
+				for j=1,GetContainerNumSlots(i) do
+					texture,itemID,name,equipslot,soulbound,count = get_item_info(i,j)
+					soulbound = soulbound or ItemRack.Indexes[invslot].ignore_soulbound -- pretend item soulbound if flagged to ignore_soulbound
+					if (equipslot and ItemRack.Indexes[invslot][equipslot]) and (soulbound or ItemRack_Settings.Soulbound=="OFF") then
+						if ItemRack_Settings.AllowHidden=="ON" and ItemRack_Users[user].Ignore[name] and not IsAltKeyDown() then
+							-- skip items that are on ignore list
+						elseif player_can_wear(i,j,invslot) then
+							if invslot==0 and count then
+								-- if this is an ammo slot menu
+								ItemRack.AmmoCounts[name] = (ItemRack.AmmoCounts[name] or 0) + count
+								found = false
+								for k=1,(idx-1) do
+									if ItemRack.BaggedItems[k].name==name then
+										found=true
+									end
 								end
-							end
-							if not found then
+								if not found then
+									populate_baggeditems(idx,i,j,name,texture,itemID)
+									idx = idx + 1
+								end
+							else
 								populate_baggeditems(idx,i,j,name,texture,itemID)
 								idx = idx + 1
-							end					
-						else
-							populate_baggeditems(idx,i,j,name,texture,itemID)
-							idx = idx + 1
+							end
 						end
 					end
 				end
 			end
-		end
-		sort_menu(idx)
+			sort_menu(idx)
 
-		if ItemRack_Settings.ShowEmpty=="ON" and GetInventoryItemLink("player",invslot) and not (ItemRack_Settings.RightClick=="ON" and (invslot==13 or invslot==14)) then
-			-- add an empty slot to the menu
-			_,j = GetInventorySlotInfo(string.gsub(ItemRack.Indexes[invslot].paperdoll_slot,"Character",""))
-			populate_baggeditems(idx,nil,nil,"(empty)",j)
-			idx = idx + 1
+			if ItemRack_Settings.ShowEmpty=="ON" and GetInventoryItemLink("player",invslot) and not (ItemRack_Settings.RightClick=="ON" and (invslot==13 or invslot==14)) then
+				-- add an empty slot to the menu
+				_,j = GetInventorySlotInfo(string.gsub(ItemRack.Indexes[invslot].paperdoll_slot,"Character",""))
+				populate_baggeditems(idx,nil,nil,"(empty)",j)
+				idx = idx + 1
+			end
+			cacheInvalid = false
 		end
-
 	else
+		idx = 1
 		-- this is a menu for sets
 		-- go through sets and gather them into .BaggedItems
 		for i in Rack_User[user].Sets do
@@ -681,158 +692,158 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 	if ItemRack.NumberOfItems<1 then
 		-- user has no bagged items for this type
 		ItemRack_MenuFrame:Hide()
-	else
-		if relativeTo=="SET" or relativeTo=="CHARACTERSHEET" then
-			-- if displaying to a set, then 
-			mainorient = "VERTICAL"
-			if invslot==0 or invslot==16 or invslot==17 or invslot==18 then
-				mainorient = "HORIZONTAL"
-			end
-		elseif relativeTo=="MINIMAP" then
-			mainorient = "HORIZONTAL"
-		elseif relativeTo=="TITAN" then
+		return
+	end
+
+	if relativeTo=="SET" or relativeTo=="CHARACTERSHEET" then
+		-- if displaying to a set, then 
+		mainorient = "VERTICAL"
+		if invslot==0 or invslot==16 or invslot==17 or invslot==18 then
 			mainorient = "HORIZONTAL"
 		end
-		ItemRack_DockMenu(invslot,relativeTo)
-	
-		for i=1,table.getn(ItemRack_Users[user].Bar) do
-			if invslot~=ItemRack_Users[user].Bar[i] then
-				getglobal("ItemRackInv"..ItemRack_Users[user].Bar[i]):UnlockHighlight()
-			else
-				getglobal("ItemRackInv"..ItemRack_Users[user].Bar[i]):LockHighlight()
-			end
-		end
+	elseif relativeTo=="MINIMAP" then
+		mainorient = "HORIZONTAL"
+	elseif relativeTo=="TITAN" then
+		mainorient = "HORIZONTAL"
+	end
+	ItemRack_DockMenu(invslot,relativeTo)
 
-		-- display items outward from docking point
-		local col,row,xpos,ypos = 0,0,dock_info("xstart"),dock_info("ystart")
-		local max_cols = 1
-
-		if ItemRack.NumberOfItems>24 then
-			max_cols = 5
-		elseif ItemRack.NumberOfItems>18 then
-			max_cols = 4
-		elseif ItemRack.NumberOfItems>12 then
-			max_cols = 3
-		elseif ItemRack.NumberOfItems>4 then
-			max_cols = 2
+	for i=1,table.getn(ItemRack_Users[user].Bar) do
+		if invslot~=ItemRack_Users[user].Bar[i] then
+			getglobal("ItemRackInv"..ItemRack_Users[user].Bar[i]):UnlockHighlight()
+		else
+			getglobal("ItemRackInv"..ItemRack_Users[user].Bar[i]):LockHighlight()
 		end
+	end
 
-		for i=1,ItemRack.NumberOfItems do
-			local item = getglobal("ItemRackMenu"..i)
-			if not item then
-				item = CreateFrame("CheckButton", "ItemRackMenu"..i, ItemRack_MenuFrame, "ItemRackMenuTemplate")
-				item:SetID(i)
-				ItemRack_SetCooldownFont("ItemRackMenu"..i)
-				getglobal("ItemRackMenu"..i.."Border"):SetVertexColor(.15,.25,1,1)
-				getglobal("ItemRackMenu"..i.."Border"):Hide()
-				ItemRack.MaxItems = ItemRack.MaxItems + 1
-			end
-			local icon = getglobal("ItemRackMenu"..i.."Icon")
-			item:SetPoint("TOPLEFT","ItemRack_MenuFrame",ItemRack.MenuDock,xpos,ypos)
-			icon:SetTexture(ItemRack.BaggedItems[i].texture)
-			-- grey menu item if it's on the ignore list (ALT key is down if it made it to BaggedItems)
-			if ItemRack_Settings.AllowHidden=="ON" and (ItemRack_Users[user].Ignore[ItemRack.BaggedItems[i].name] or (Rack_User[user].Sets[ItemRack.BaggedItems[i].name] and Rack_User[user].Sets[ItemRack.BaggedItems[i].name].hide)) then
-				SetDesaturation(icon,1)
-			else
-				SetDesaturation(icon,nil)
-			end
+	-- display items outward from docking point
+	local col,row,xpos,ypos = 0,0,dock_info("xstart"),dock_info("ystart")
+	local max_cols = 1
 
-			if (mainorient=="HORIZONTAL" and ItemRack_Settings.RotateMenu=="OFF") or (mainorient=="VERTICAL" and ItemRack_Settings.RotateMenu=="ON") then
-				xpos = xpos + dock_info("xdir")*40
-				col = col + 1
-				if col==max_cols then
-					xpos = dock_info("xstart")
-					col = 0
-					ypos = ypos + dock_info("ydir")*40
-					row = row + 1
-				end
-				item:Show()
-			else
-				ypos = ypos + dock_info("ydir")*40
-				col = col + 1
-				if col==max_cols then
-					ypos = dock_info("ystart")
-					col = 0
-					xpos = xpos + dock_info("xdir")*40
-					row = row + 1
-				end
-				item:Show()
-			end
+	if ItemRack.NumberOfItems>24 then
+		max_cols = 5
+	elseif ItemRack.NumberOfItems>18 then
+		max_cols = 4
+	elseif ItemRack.NumberOfItems>12 then
+		max_cols = 3
+	elseif ItemRack.NumberOfItems>4 then
+		max_cols = 2
+	end
+
+	for i=1,ItemRack.NumberOfItems do
+		local item = getglobal("ItemRackMenu"..i)
+		if not item then
+			item = CreateFrame("CheckButton", "ItemRackMenu"..i, ItemRack_MenuFrame, "ItemRackMenuTemplate")
+			item:SetID(i)
+			ItemRack_SetCooldownFont("ItemRackMenu"..i)
+			getglobal("ItemRackMenu"..i.."Border"):SetVertexColor(.15,.25,1,1)
+			getglobal("ItemRackMenu"..i.."Border"):Hide()
+			ItemRack.MaxItems = ItemRack.MaxItems + 1
 		end
-		for i=(ItemRack.NumberOfItems+1),ItemRack.MaxItems do
-			if getglobal("ItemRackMenu"..i) then
-				getglobal("ItemRackMenu"..i):Hide()
-			end
-		end
-		if col==0 then
-			row = row-1
+		local icon = getglobal("ItemRackMenu"..i.."Icon")
+		item:SetPoint("TOPLEFT","ItemRack_MenuFrame",ItemRack.MenuDock,xpos,ypos)
+		icon:SetTexture(ItemRack.BaggedItems[i].texture)
+		-- grey menu item if it's on the ignore list (ALT key is down if it made it to BaggedItems)
+		if ItemRack_Settings.AllowHidden=="ON" and (ItemRack_Users[user].Ignore[ItemRack.BaggedItems[i].name] or (Rack_User[user].Sets[ItemRack.BaggedItems[i].name] and Rack_User[user].Sets[ItemRack.BaggedItems[i].name].hide)) then
+			SetDesaturation(icon,1)
+		else
+			SetDesaturation(icon,nil)
 		end
 
 		if (mainorient=="HORIZONTAL" and ItemRack_Settings.RotateMenu=="OFF") or (mainorient=="VERTICAL" and ItemRack_Settings.RotateMenu=="ON") then
-			ItemRack_MenuFrame:SetWidth(12+(max_cols*40))
-			ItemRack_MenuFrame:SetHeight(12+((row+1)*40))
+			xpos = xpos + dock_info("xdir")*40
+			col = col + 1
+			if col==max_cols then
+				xpos = dock_info("xstart")
+				col = 0
+				ypos = ypos + dock_info("ydir")*40
+				row = row + 1
+			end
+			item:Show()
 		else
-			ItemRack_MenuFrame:SetWidth(12+((row+1)*40))
-			ItemRack_MenuFrame:SetHeight(12+(max_cols*40))
+			ypos = ypos + dock_info("ydir")*40
+			col = col + 1
+			if col==max_cols then
+				ypos = dock_info("ystart")
+				col = 0
+				xpos = xpos + dock_info("xdir")*40
+				row = row + 1
+			end
+			item:Show()
 		end
-
-		-- apply slot-dependant overlays, ammo count, set name and key bindings
-		if invslot==0 then -- if this is an ammo slot, show counts
-			for i=1,ItemRack.NumberOfItems do
-				if ItemRack.AmmoCounts[ItemRack.BaggedItems[i].name] then
-					getglobal("ItemRackMenu"..i.."Count"):SetText(ItemRack.AmmoCounts[ItemRack.BaggedItems[i].name])
-				end
-			end
-		elseif invslot==20 then -- if this is a set slot, show names and bindings
-			for i=1,ItemRack.NumberOfItems do
-				name = ItemRack.BaggedItems[i].name
-				if ItemRack.BankIsOpen and Rack.SetHasBanked(name) then
-					getglobal("ItemRackMenu"..i.."Border"):Show()
-					getglobal("ItemRackMenu"..i.."Icon"):SetVertexColor(.5,.5,.5)
-				else
-					getglobal("ItemRackMenu"..i.."Border"):Hide()
-					getglobal("ItemRackMenu"..i.."Icon"):SetVertexColor(1,1,1)
-				end
-					
-				item = getglobal("ItemRackMenu"..i.."Name")
-				if ItemRack_Settings.SetLabels=="ON" then
-					item:SetText(name)
-					item:Show()
-				else
-					item:Hide()
-				end
-				item = getglobal("ItemRackMenu"..i.."HotKey")
-				if Rack_User[user].Sets[name].key and ItemRack_Settings.Bindings=="ON" then
-					_,_,j,k = string.find(Rack_User[user].Sets[name].key or "","(.).+(-.)")
-					item:SetText((j or "")..(k or ""))
-					item:Show()
-				else
-					item:Hide()
-				end
-			end
-		else -- normal slot (1-19) has no overlays
-			for i=1,ItemRack.NumberOfItems do
-				getglobal("ItemRackMenu"..i.."Name"):SetText("")
-				getglobal("ItemRackMenu"..i.."Count"):SetText("")
-				getglobal("ItemRackMenu"..i.."HotKey"):SetText("")
-
-				if ItemRack.BankedItems[ItemRack.BaggedItems[i].id] then
-					getglobal("ItemRackMenu"..i.."Border"):Show()
-					getglobal("ItemRackMenu"..i.."Icon"):SetVertexColor(.5,.5,.5)
-				else
-					getglobal("ItemRackMenu"..i.."Border"):Hide()
-					getglobal("ItemRackMenu"..i.."Icon"):SetVertexColor(1,1,1)
-				end
-			end
-		end
-
-		ItemRack.InvOpen = invslot
-		ItemRack_MenuFrame:Show()
-		update_menu_cooldowns()
-		Rack.StartTimer("CooldownUpdate",0) -- immediate cooldown update
-		Rack.StartTimer("MenuFrame")
-
 	end
+	for i=(ItemRack.NumberOfItems+1),ItemRack.MaxItems do
+		if getglobal("ItemRackMenu"..i) then
+			getglobal("ItemRackMenu"..i):Hide()
+		end
+	end
+	if col==0 then
+		row = row-1
+	end
+
+	if (mainorient=="HORIZONTAL" and ItemRack_Settings.RotateMenu=="OFF") or (mainorient=="VERTICAL" and ItemRack_Settings.RotateMenu=="ON") then
+		ItemRack_MenuFrame:SetWidth(12+(max_cols*40))
+		ItemRack_MenuFrame:SetHeight(12+((row+1)*40))
+	else
+		ItemRack_MenuFrame:SetWidth(12+((row+1)*40))
+		ItemRack_MenuFrame:SetHeight(12+(max_cols*40))
+	end
+
+	-- apply slot-dependant overlays, ammo count, set name and key bindings
+	if invslot==0 then -- if this is an ammo slot, show counts
+		for i=1,ItemRack.NumberOfItems do
+			if ItemRack.AmmoCounts[ItemRack.BaggedItems[i].name] then
+				getglobal("ItemRackMenu"..i.."Count"):SetText(ItemRack.AmmoCounts[ItemRack.BaggedItems[i].name])
+			end
+		end
+	elseif invslot==20 then -- if this is a set slot, show names and bindings
+		for i=1,ItemRack.NumberOfItems do
+			name = ItemRack.BaggedItems[i].name
+			if ItemRack.BankIsOpen and Rack.SetHasBanked(name) then
+				getglobal("ItemRackMenu"..i.."Border"):Show()
+				getglobal("ItemRackMenu"..i.."Icon"):SetVertexColor(.5,.5,.5)
+			else
+				getglobal("ItemRackMenu"..i.."Border"):Hide()
+				getglobal("ItemRackMenu"..i.."Icon"):SetVertexColor(1,1,1)
+			end
+				
+			item = getglobal("ItemRackMenu"..i.."Name")
+			if ItemRack_Settings.SetLabels=="ON" then
+				item:SetText(name)
+				item:Show()
+			else
+				item:Hide()
+			end
+			item = getglobal("ItemRackMenu"..i.."HotKey")
+			if Rack_User[user].Sets[name].key and ItemRack_Settings.Bindings=="ON" then
+				_,_,j,k = string.find(Rack_User[user].Sets[name].key or "","(.).+(-.)")
+				item:SetText((j or "")..(k or ""))
+				item:Show()
+			else
+				item:Hide()
+			end
+		end
+	else -- normal slot (1-19) has no overlays
+		for i=1,ItemRack.NumberOfItems do
+			getglobal("ItemRackMenu"..i.."Name"):SetText("")
+			getglobal("ItemRackMenu"..i.."Count"):SetText("")
+			getglobal("ItemRackMenu"..i.."HotKey"):SetText("")
+
+			if ItemRack.BankedItems[ItemRack.BaggedItems[i].id] then
+				getglobal("ItemRackMenu"..i.."Border"):Show()
+				getglobal("ItemRackMenu"..i.."Icon"):SetVertexColor(.5,.5,.5)
+			else
+				getglobal("ItemRackMenu"..i.."Border"):Hide()
+				getglobal("ItemRackMenu"..i.."Icon"):SetVertexColor(1,1,1)
+			end
+		end
+	end
+
+	ItemRack.InvOpen = invslot
+	ItemRack_MenuFrame:Show()
+	update_menu_cooldowns()
+	Rack.StartTimer("CooldownUpdate",0) -- immediate cooldown update
+	Rack.StartTimer("MenuFrame")
 end
 
 -- for use with main/menu frames with UIParent parent when relocated by the mod, to register for layout-cache.txt
@@ -1271,6 +1282,7 @@ function ItemRack_OnEvent(event)
 
 	if event=="UNIT_INVENTORY_CHANGED" then
 		if arg1=="player" then
+			cacheInvalid = true
 			Rack.StartTimer("InvUpdate")
 		end
 	elseif event=="PLAYER_AURAS_CHANGED" then
@@ -1279,13 +1291,16 @@ function ItemRack_OnEvent(event)
 	elseif event=="UPDATE_BINDINGS" then
 		update_keybindings()
 
-	elseif event=="BANKFRAME_OPENED" then
+	elseif event=="BANKFRAME_OPENED" or event=="PLAYERBANKSLOTS_CHANGED" then
+		cacheInvalid = true
 		Rack.BankOpened()
 
 	elseif event=="BANKFRAME_CLOSED" then
+		cacheInvalid = true
 		Rack.BankClosed()
 
-	elseif event=="BAG_UPDATE" then -- only enabled when bank is open
+	elseif event=="BAG_UPDATE" then
+		cacheInvalid = true
 		Rack.PopulateBank()
 		if ItemRack_MenuFrame:IsVisible() and ItemRack.InvOpen then
 			ItemRack_BuildMenu(ItemRack.InvOpen,ItemRack.MenuDockedTo)
@@ -1315,6 +1330,8 @@ function ItemRack_OnEvent(event)
 
 		this:RegisterEvent("UNIT_INVENTORY_CHANGED")
 		this:RegisterEvent("UPDATE_BINDINGS")
+		this:RegisterEvent("BAG_UPDATE")
+		this:RegisterEvent("PLAYERBANKSLOTS_CHANGED")
 
 		RackFrame:RegisterEvent("PLAYER_REGEN_ENABLED") -- leaving combat
 		RackFrame:RegisterEvent("PLAYER_UNGHOST") -- leaving ghost
@@ -1510,7 +1527,7 @@ function newItemRack_PaperDollItemSlotButton_OnEnter()
 	oldItemRack_PaperDollItemSlotButton_OnEnter()
 
 	if IsAltKeyDown() then
-		if id and not InRepairMode() and not ItemRack.InvOpen then
+		if id and not InRepairMode() then
 			ItemRack_BuildMenu(id,"CHARACTERSHEET")
 		end
 	end
@@ -1681,7 +1698,7 @@ function ItemRack_InvUpdate_OnUpdate()
 			if ItemRack_Settings.RightClick=="ON" and ItemRack.InvOpen==13 then
 				ItemRack.InvOpen = 14
 			end
-			ItemRack_BuildMenu(ItemRack.InvOpen)
+			ItemRack_BuildMenu(ItemRack.InvOpen, ItemRack.MenuDockedTo)
 		end
 
 	end
@@ -5074,6 +5091,7 @@ end
 --[[ Bank support ]]
 
 function Rack.PopulateBank()
+	if not ItemRack.BankIsOpen then return end
 	Rack.UnpopulateBank()
 	local itemLink,itemID,equipLoc
 	for i=1,table.getn(ItemRack.BankSlots) do
@@ -5097,16 +5115,14 @@ function Rack.UnpopulateBank()
 end
 
 function Rack.BankOpened()
-	Rack.PopulateBank()
 	ItemRack.BankIsOpen = 1
-	ItemRackFrame:RegisterEvent("BAG_UPDATE")
+	Rack.PopulateBank()
 end
 
 function Rack.BankClosed()
 	ItemRack.BankIsOpen = nil
 	ItemRack_MenuFrame:Hide()
 	Rack.UnpopulateBank()
-	ItemRackFrame:UnregisterEvent("BAG_UPDATE")
 end
 
 function Rack.SetHasBanked(setname)
