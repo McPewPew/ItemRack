@@ -230,8 +230,8 @@ end
 if (GetLocale() == "zhCN") then
 	ItemRackText.INVTYPE_CONTAINER = "背包"
 	ItemRackText.MOUNTCHECK = "^速度提高" --"Increases speed by" 
-	ItemRackText.MOUNTCHECK2 = "^Speed scales with your Riding skill\.$" -- Most Turtle WoW mounts
-	ItemRackText.MOUNTCHECK3 = "^Slow and steady%.%.%.$" -- Turtle mount
+	ItemRackText.MOUNTCHECK2 = "技能提高速度" -- Most Turtle WoW mounts
+	ItemRackText.MOUNTCHECK3 = "^又慢又稳" -- Turtle mount
 	
 	--"Goblin Brainwashing Device"
 	ItemRackText.GBD = "地精洗脑装置"
@@ -463,4 +463,5 @@ ItemRack_DefaultEvents = {
 	},
 
 }
+
 
