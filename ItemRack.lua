@@ -616,8 +616,6 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 	end
 
 	local item,itemID,texture,name,equipslot,soulbound,found,count
-	local mainorient = ItemRack_Users[user].MainOrient
-	local bagStart,bagEnd = 0,4
 
 	if invslot==0 and cacheInvalid then
 		-- if this is an ammo slot, clear totals
@@ -630,9 +628,8 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 		-- the following block is very expensive, do it when cache is invalid
 		if cacheInvalid then
 			idx = 1
-			if ItemRack.BankIsOpen then
-				bagStart,bagEnd = -1,10
-			end
+			local bagStart, bagEnd = 0, 4
+			if ItemRack.BankIsOpen then bagStart, bagEnd = -1, 10 end
 
 			-- go through bags and gather items into .BaggedItems
 			for i=bagStart,bagEnd do
@@ -668,8 +665,8 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 
 			if ItemRack_Settings.ShowEmpty=="ON" and GetInventoryItemLink("player",invslot) and not (ItemRack_Settings.RightClick=="ON" and (invslot==13 or invslot==14)) then
 				-- add an empty slot to the menu
-				_,j = GetInventorySlotInfo(string.gsub(ItemRack.Indexes[invslot].paperdoll_slot,"Character",""))
-				populate_baggeditems(idx,nil,nil,"(empty)",j)
+				local _,id = GetInventorySlotInfo(string.gsub(ItemRack.Indexes[invslot].paperdoll_slot,"Character",""))
+				populate_baggeditems(idx,nil,nil,"(empty)",id)
 				idx = idx + 1
 			end
 			cacheInvalid = false
@@ -694,6 +691,8 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 		ItemRack_MenuFrame:Hide()
 		return
 	end
+
+	local mainorient = ItemRack_Users[user].MainOrient
 
 	if relativeTo=="SET" or relativeTo=="CHARACTERSHEET" then
 		-- if displaying to a set, then 
@@ -816,7 +815,7 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 			end
 			item = getglobal("ItemRackMenu"..i.."HotKey")
 			if Rack_User[user].Sets[name].key and ItemRack_Settings.Bindings=="ON" then
-				_,_,j,k = string.find(Rack_User[user].Sets[name].key or "","(.).+(-.)")
+				local _,_,j,k = string.find(Rack_User[user].Sets[name].key or "","(.).+(-.)")
 				item:SetText((j or "")..(k or ""))
 				item:Show()
 			else
@@ -1294,6 +1293,7 @@ function ItemRack_OnEvent(event)
 	elseif event=="BANKFRAME_OPENED" or event=="PLAYERBANKSLOTS_CHANGED" then
 		cacheInvalid = true
 		Rack.BankOpened()
+		Rack.StartTimer("InvUpdate")
 
 	elseif event=="BANKFRAME_CLOSED" then
 		cacheInvalid = true
@@ -1302,16 +1302,7 @@ function ItemRack_OnEvent(event)
 	elseif event=="BAG_UPDATE" then
 		cacheInvalid = true
 		Rack.PopulateBank()
-		if ItemRack_MenuFrame:IsVisible() and ItemRack.InvOpen then
-			ItemRack_BuildMenu(ItemRack.InvOpen,ItemRack.MenuDockedTo)
-			if ItemRack.InvOpen==20 then
-				local id = GetMouseFocus() and GetMouseFocus():GetID() or ""
-				local menuItem = ItemRack.BaggedItems[id or ""]
-				if menuItem and menuItem.name and Rack_User[user].Sets[menuItem.name] then
-					ItemRack_Sets_Tooltip(menuItem.name,1)
-				end
-			end
-		end
+		Rack.StartTimer("InvUpdate")
 
 	elseif event=="PLAYER_LOGIN" then
 
@@ -1699,8 +1690,16 @@ function ItemRack_InvUpdate_OnUpdate()
 				ItemRack.InvOpen = 14
 			end
 			ItemRack_BuildMenu(ItemRack.InvOpen, ItemRack.MenuDockedTo)
+			if ItemRack_MenuFrame:IsVisible() then
+				if ItemRack.InvOpen==20 then
+					local id = GetMouseFocus() and GetMouseFocus():GetID() or ""
+					local menuItem = ItemRack.BaggedItems[id or ""]
+					if menuItem and menuItem.name and Rack_User[user].Sets[menuItem.name] then
+						ItemRack_Sets_Tooltip(menuItem.name,1)
+					end
+				end
+			end
 		end
-
 	end
 end
 
