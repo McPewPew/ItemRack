@@ -46,12 +46,17 @@ else
 	IRTurtle = false
 	-- some mount textures share non-mount buff textures, if you run across one put it here
 	problem_mounts = {
+		["Interface\\Icons\\Spell_Nature_SpiritWolf"] = 1,
 		["Interface\\Icons\\Ability_Mount_PinkTiger"] = 1,
 		["Interface\\Icons\\Ability_Mount_WhiteTiger"] = 1,
 		["Interface\\Icons\\Spell_Nature_Swiftness"] = 1,
 		["Interface\\Icons\\INV_Misc_Foot_Kodo"] = 1,
 		["Interface\\Icons\\Ability_Mount_JungleTiger"] = 1,
-		["Interface\\Icons\\Spell_Nature_SpiritWolf"] = 1,
+		["Interface\\Icons\\inv_misc_PheonixPet_01"] = 1,
+		["Interface\\Icons\\Spell_Nature_Sentinal"] = 1,
+		["Interface\\Icons\\Spell_Arcane_StarFire"] = 1,
+		["Interface\\Icons\\Ability_Mount_WhiteDireWolf"] = 1,
+		["Interface\\Icons\\INV_Misc_Key_12"] = 1,
 	}
 end
 
@@ -5227,3 +5232,4 @@ end
 function Rack.NoMoreRoom()
 	DEFAULT_CHAT_FRAME:AddMessage("ItemRack: Not enough room to complete the swap.")
 end
+
