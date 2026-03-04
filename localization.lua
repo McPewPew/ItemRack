@@ -461,7 +461,4 @@ ItemRack_DefaultEvents = {
 		"IR_MOUNT = mount\n"..
 		"--[[Equips mount set as normal unless in ZG or AQ]]",
 	},
-
 }
-
-
