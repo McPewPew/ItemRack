@@ -38,7 +38,7 @@ ItemRack_Events = {}
 ItemRack_Version = 1.98
 
 --[[ Local Variables ]]--
-
+local _G = _G or getfenv(0)
 local IRTurtle = nil
 if TURTLE_WOW_VERSION then
 	IRTurtle = true 
@@ -348,7 +348,6 @@ local inv_dock = {
 function ItemRack_DockMenu(invslot,relativeTo)
 
 	local attachTo = ((not relativeTo) and "ItemRackInv"..invslot) or (relativeTo=="TITAN" and "TitanPanelItemRackButton") or (relativeTo=="SET" and "ItemRack_Sets_Inv"..invslot) or (relativeTo=="MINIMAP" and "ItemRack_IconFrame") or ItemRack.Indexes[invslot].paperdoll_slot
-	local item = getglobal(attachTo)
 	local noflip = ItemRack_Settings.FlipMenu=="OFF"
 	local corner=corner_info()
 	local mainorient = ItemRack_Users[user].MainOrient
@@ -414,7 +413,7 @@ function ItemRack_DockMenu(invslot,relativeTo)
 		ItemRack.MainDock = inv_dock[invslot].maindock
 		ItemRack.MenuDock = inv_dock[invslot].menudock
 	elseif relativeTo=="CHARACTERSHEET" then
-		ItemRack_MenuFrame:SetScale(getglobal(ItemRack.Indexes[1].paperdoll_slot):GetScale())
+		ItemRack_MenuFrame:SetScale(_G[ItemRack.Indexes[1].paperdoll_slot]:GetScale())
 		ItemRack.MainDock = inv_dock[invslot].maindock
 		ItemRack.MenuDock = inv_dock[invslot].menudock
 		if ItemRack.MainDock == "TOPLEFT" then
@@ -435,7 +434,7 @@ local function is_red(v1)
 
 	local its_red,r,g,b = false
 
-	r,g,b = getglobal("Rack_TooltipScanText"..v1):GetTextColor()
+	r,g,b = _G["Rack_TooltipScanText"..v1]:GetTextColor()
 	if r>.9 and g<.2 and b<.2 then
 		its_red = true
 	end
@@ -451,13 +450,13 @@ local function player_can_wear(bag,slot,invslot)
 
 	for i=2,15 do
 		-- ClearLines doesn't remove colors, manually remove them
-		getglobal("Rack_TooltipScanTextLeft"..i):SetTextColor(0,0,0)
-		getglobal("Rack_TooltipScanTextRight"..i):SetTextColor(0,0,0)
+		_G["Rack_TooltipScanTextLeft"..i]:SetTextColor(0,0,0)
+		_G["Rack_TooltipScanTextRight"..i]:SetTextColor(0,0,0)
 	end
 	Rack_TooltipScan:SetBagItem(bag,slot)
 
 	for i=2,15 do
-		txt = getglobal("Rack_TooltipScanTextLeft"..i):GetText()
+		txt = _G["Rack_TooltipScanTextLeft"..i]:GetText()
 		-- if either left or right text is red and this isn't a Durability x/x line, this item can't be worn
 		if (is_red("Left"..i) or is_red("Right"..i)) and not string.find(txt,durability_pattern) and not string.find(txt,"^Requires") then
 			found = true
@@ -501,7 +500,7 @@ local function get_item_info(bag,slot)
 			Rack_TooltipScan:SetInventoryItem("player",bag)
 		end
 		for i=2,5 do
-			text = getglobal("Rack_TooltipScanTextLeft"..i):GetText() or ""
+			text = _G["Rack_TooltipScanTextLeft"..i]:GetText() or ""
 			if text==ITEM_SOULBOUND or text==ITEM_BIND_QUEST or text==ITEM_CONJURED then
 				soulbound = true
 			end
@@ -524,9 +523,9 @@ local function update_menu_cooldowns()
 		for i=1,ItemRack.NumberOfItems do
 			if ItemRack.BaggedItems[i].bag then
 				start, duration, enable = GetContainerItemCooldown(ItemRack.BaggedItems[i].bag,ItemRack.BaggedItems[i].slot)
-				CooldownFrame_SetTimer(getglobal("ItemRackMenu"..i.."Cooldown"), start, duration, enable)
+				CooldownFrame_SetTimer(_G["ItemRackMenu"..i.."Cooldown"], start, duration, enable)
 			else
-				getglobal("ItemRackMenu"..i.."Time"):SetText("")
+				_G["ItemRackMenu"..i.."Time"]:SetText("")
 			end
 		end
 	end
@@ -540,7 +539,7 @@ local function update_inv_cooldowns()
 	if table.getn(ItemRack_Users[user].Bar)>0 then
 		for i=1,table.getn(ItemRack_Users[user].Bar) do
 			start, duration, enable = GetInventoryItemCooldown("player",ItemRack_Users[user].Bar[i])
-			CooldownFrame_SetTimer(getglobal("ItemRackInv"..ItemRack_Users[user].Bar[i].."Cooldown"), start, duration, enable)
+			CooldownFrame_SetTimer(_G["ItemRackInv"..ItemRack_Users[user].Bar[i].."Cooldown"], start, duration, enable)
 		end
 	end
 
@@ -709,9 +708,9 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 
 	for i=1,table.getn(ItemRack_Users[user].Bar) do
 		if invslot~=ItemRack_Users[user].Bar[i] then
-			getglobal("ItemRackInv"..ItemRack_Users[user].Bar[i]):UnlockHighlight()
+			_G["ItemRackInv"..ItemRack_Users[user].Bar[i]]:UnlockHighlight()
 		else
-			getglobal("ItemRackInv"..ItemRack_Users[user].Bar[i]):LockHighlight()
+			_G["ItemRackInv"..ItemRack_Users[user].Bar[i]]:LockHighlight()
 		end
 	end
 
@@ -730,16 +729,16 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 	end
 
 	for i=1,ItemRack.NumberOfItems do
-		local item = getglobal("ItemRackMenu"..i)
+		local item = _G["ItemRackMenu"..i]
 		if not item then
 			item = CreateFrame("CheckButton", "ItemRackMenu"..i, ItemRack_MenuFrame, "ItemRackMenuTemplate")
 			item:SetID(i)
 			ItemRack_SetCooldownFont("ItemRackMenu"..i)
-			getglobal("ItemRackMenu"..i.."Border"):SetVertexColor(.15,.25,1,1)
-			getglobal("ItemRackMenu"..i.."Border"):Hide()
+			_G["ItemRackMenu"..i.."Border"]:SetVertexColor(.15,.25,1,1)
+			_G["ItemRackMenu"..i.."Border"]:Hide()
 			ItemRack.MaxItems = ItemRack.MaxItems + 1
 		end
-		local icon = getglobal("ItemRackMenu"..i.."Icon")
+		local icon = _G["ItemRackMenu"..i.."Icon"]
 		item:SetPoint("TOPLEFT","ItemRack_MenuFrame",ItemRack.MenuDock,xpos,ypos)
 		icon:SetTexture(ItemRack.BaggedItems[i].texture)
 		-- grey menu item if it's on the ignore list (ALT key is down if it made it to BaggedItems)
@@ -772,8 +771,8 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 		end
 	end
 	for i=(ItemRack.NumberOfItems+1),ItemRack.MaxItems do
-		if getglobal("ItemRackMenu"..i) then
-			getglobal("ItemRackMenu"..i):Hide()
+		if _G["ItemRackMenu"..i] then
+			_G["ItemRackMenu"..i]:Hide()
 		end
 	end
 	if col==0 then
@@ -792,28 +791,28 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 	if invslot==0 then -- if this is an ammo slot, show counts
 		for i=1,ItemRack.NumberOfItems do
 			if ItemRack.AmmoCounts[ItemRack.BaggedItems[i].name] then
-				getglobal("ItemRackMenu"..i.."Count"):SetText(ItemRack.AmmoCounts[ItemRack.BaggedItems[i].name])
+				_G["ItemRackMenu"..i.."Count"]:SetText(ItemRack.AmmoCounts[ItemRack.BaggedItems[i].name])
 			end
 		end
 	elseif invslot==20 then -- if this is a set slot, show names and bindings
 		for i=1,ItemRack.NumberOfItems do
 			name = ItemRack.BaggedItems[i].name
 			if ItemRack.BankIsOpen and Rack.SetHasBanked(name) then
-				getglobal("ItemRackMenu"..i.."Border"):Show()
-				getglobal("ItemRackMenu"..i.."Icon"):SetVertexColor(.5,.5,.5)
+				_G["ItemRackMenu"..i.."Border"]:Show()
+				_G["ItemRackMenu"..i.."Icon"]:SetVertexColor(.5,.5,.5)
 			else
-				getglobal("ItemRackMenu"..i.."Border"):Hide()
-				getglobal("ItemRackMenu"..i.."Icon"):SetVertexColor(1,1,1)
+				_G["ItemRackMenu"..i.."Border"]:Hide()
+				_G["ItemRackMenu"..i.."Icon"]:SetVertexColor(1,1,1)
 			end
 				
-			item = getglobal("ItemRackMenu"..i.."Name")
+			item = _G["ItemRackMenu"..i.."Name"]
 			if ItemRack_Settings.SetLabels=="ON" then
 				item:SetText(name)
 				item:Show()
 			else
 				item:Hide()
 			end
-			item = getglobal("ItemRackMenu"..i.."HotKey")
+			item = _G["ItemRackMenu"..i.."HotKey"]
 			if Rack_User[user].Sets[name].key and ItemRack_Settings.Bindings=="ON" then
 				local _,_,j,k = string.find(Rack_User[user].Sets[name].key or "","(.).+(-.)")
 				item:SetText((j or "")..(k or ""))
@@ -824,16 +823,16 @@ function ItemRack_BuildMenu(invslot,relativeTo)
 		end
 	else -- normal slot (1-19) has no overlays
 		for i=1,ItemRack.NumberOfItems do
-			getglobal("ItemRackMenu"..i.."Name"):SetText("")
-			getglobal("ItemRackMenu"..i.."Count"):SetText("")
-			getglobal("ItemRackMenu"..i.."HotKey"):SetText("")
+			_G["ItemRackMenu"..i.."Name"]:SetText("")
+			_G["ItemRackMenu"..i.."Count"]:SetText("")
+			_G["ItemRackMenu"..i.."HotKey"]:SetText("")
 
 			if ItemRack.BankedItems[ItemRack.BaggedItems[i].id] then
-				getglobal("ItemRackMenu"..i.."Border"):Show()
-				getglobal("ItemRackMenu"..i.."Icon"):SetVertexColor(.5,.5,.5)
+				_G["ItemRackMenu"..i.."Border"]:Show()
+				_G["ItemRackMenu"..i.."Icon"]:SetVertexColor(.5,.5,.5)
 			else
-				getglobal("ItemRackMenu"..i.."Border"):Hide()
-				getglobal("ItemRackMenu"..i.."Icon"):SetVertexColor(1,1,1)
+				_G["ItemRackMenu"..i.."Border"]:Hide()
+				_G["ItemRackMenu"..i.."Icon"]:SetVertexColor(1,1,1)
 			end
 		end
 	end
@@ -899,15 +898,15 @@ local function draw_inv()
 	end
 
 	for i=0,20 do
-		getglobal("ItemRackInv"..i):Hide()
+		_G["ItemRackInv"..i]:Hide()
 	end
 	ItemRack.TrinketsPaired = false -- changes to true if two trinkets are beside each other
 
 	if table.getn(bar)>0 then
-		item = getglobal("ItemRackInv"..bar[1])
+		item = _G["ItemRackInv"..bar[1]]
 		item:ClearAllPoints()
 		item:SetPoint(cornerStart,"ItemRack_InvFrame",cornerStart,xdirStart,ydirStart)
-		getglobal("ItemRackInv"..bar[1].."Icon"):SetTexture(get_item_info(bar[1]))
+		_G["ItemRackInv"..bar[1].."Icon"]:SetTexture(get_item_info(bar[1]))
 		item:Show()
 		if ItemRack_Settings.RightClick=="ON" and (bar[1]==13 and bar[2]==14) then
 			ItemRack.TrinketsPaired = true
@@ -922,10 +921,10 @@ local function draw_inv()
 				xspacer = xdir*2
 				yspacer = ydir*2
 			end
-			item = getglobal("ItemRackInv"..bar[i])
+			item = _G["ItemRackInv"..bar[i]]
 			item:ClearAllPoints()
 			item:SetPoint(cornerTo,"ItemRackInv"..bar[i-1],corner,xdir+xspacer,ydir+yspacer)
-			getglobal("ItemRackInv"..bar[i].."Icon"):SetTexture(get_item_info(bar[i]))
+			_G["ItemRackInv"..bar[i].."Icon"]:SetTexture(get_item_info(bar[i]))
 			item:Show()
 			cx = cx + math.abs(xadd) + math.abs(xspacer)
 			cy = cy + math.abs(yadd) + math.abs(yspacer) -- was minus yspacer
@@ -1015,9 +1014,9 @@ local function update_keybindings()
 			if modifier and key then
 				text = modifier..key
 			end
-			getglobal("ItemRackInv"..i.."HotKey"):SetText(text)
+			_G["ItemRackInv"..i.."HotKey"]:SetText(text)
 		else
-			getglobal("ItemRackInv"..i.."HotKey"):SetText("")
+			_G["ItemRackInv"..i.."HotKey"]:SetText("")
 		end
 	end
 
@@ -1137,18 +1136,18 @@ local function initialize_display()
 	ItemRackInv0Count:SetText(CharacterAmmoSlotCount:IsShown() and CharacterAmmoSlotCount:GetText() or "")
 
 	for i in ItemRack.OptInfo do
-		if ItemRack.OptInfo[i].type=="Check" and getglobal(i) then
-			local item = getglobal(i.."Text")
+		if ItemRack.OptInfo[i].type=="Check" and _G[i] then
+			local item = _G[i.."Text"]
 			item:SetText(ItemRack.OptInfo[i].text)
 			item:SetTextColor(1,1,1)
 			if ItemRack.OptInfo[i].info and ItemRack_Settings[ItemRack.OptInfo[i].info]=="ON" then
-				getglobal(i):SetChecked(1)
+				_G[i]:SetChecked(1)
 			else
-				getglobal(i):SetChecked(0)
+				_G[i]:SetChecked(0)
 			end
 		end
 		if ItemRack.OptInfo[i].type=="Label" then
-			getglobal(i):SetText(ItemRack.OptInfo[i].text)
+			_G[i]:SetText(ItemRack.OptInfo[i].text)
 		end
 	end
 
@@ -1170,8 +1169,8 @@ local function initialize_display()
 	ItemRack_ChangeEventFont()
 
 	-- for i=1,30 do
-	-- 	getglobal("ItemRackMenu"..i.."Border"):SetVertexColor(.15,.25,1,1)
-	-- 	getglobal("ItemRackMenu"..i.."Border"):Hide()
+	-- 	_G["ItemRackMenu"..i.."Border"]:SetVertexColor(.15,.25,1,1)
+	-- 	_G["ItemRackMenu"..i.."Border"]:Hide()
 	-- end
 
 	draw_inv() -- construct the bar
@@ -1430,7 +1429,7 @@ function ItemRack_Reset()
 end
 
 local function remove_inv(id)
-	getglobal("ItemRackInv"..id):Hide()
+	_G["ItemRackInv"..id]:Hide()
 	ItemRack_Users[user].Inv[id] = nil
 	for i=1,table.getn(ItemRack_Users[user].Bar) do
 		if ItemRack_Users[user].Bar[i]==id then
@@ -1483,7 +1482,7 @@ function newItemRack_PaperDollItemSlotButton_OnClick(button, ignoreShift)
 		else
 			ItemRack_Users[user].Visible="ON"
 			ItemRack_Users[user].Inv[id] = 1
-			getglobal("ItemRackInv"..id.."Icon"):SetTexture(texture)
+			_G["ItemRackInv"..id.."Icon"]:SetTexture(texture)
 			table.insert(ItemRack_Users[user].Bar,id)
 			draw_inv()
 		end
@@ -1672,15 +1671,15 @@ function ItemRack_InvUpdate_OnUpdate()
 
 		if table.getn(ItemRack_Users[user].Bar)>0 then
 			for i=1,table.getn(ItemRack_Users[user].Bar) do
-				getglobal("ItemRackInv"..ItemRack_Users[user].Bar[i]):SetChecked(0)
-				SetDesaturation(getglobal("ItemRackInv"..ItemRack_Users[user].Bar[i].."Icon"),nil)
+				_G["ItemRackInv"..ItemRack_Users[user].Bar[i]]:SetChecked(0)
+				SetDesaturation(_G["ItemRackInv"..ItemRack_Users[user].Bar[i].."Icon"],nil)
 			end
 		end
 
 		-- if set builder is up, change the inventory to reflect the change
 		if ItemRack_SetsFrame:IsVisible() then
 			for i=0,19 do
-				SetDesaturation(getglobal("ItemRack_Sets_Inv"..i.."Icon"),nil)
+				SetDesaturation(_G["ItemRack_Sets_Inv"..i.."Icon"],nil)
 			end
 			ItemRack_Sets_UpdateInventory()
 		end
@@ -1752,7 +1751,7 @@ end
 function ItemRack_ReactUseInventoryItem(slot)
 
 	if ItemRack_Users[user].Inv[slot] then
-		getglobal("ItemRackInv"..slot):SetChecked(1)
+		_G["ItemRackInv"..slot]:SetChecked(1)
 	end
 	Rack.StartTimer("InvUpdate",1.5) -- extra long wait
 
@@ -1993,10 +1992,10 @@ function ItemRack_Menu_OnClick(arg1)
 				PickupContainerItem(bag,slot)
 			end
 		end
-		SetDesaturation(getglobal("ItemRackInv"..ItemRack.InvOpen.."Icon"),1)
+		SetDesaturation(_G["ItemRackInv"..ItemRack.InvOpen.."Icon"],1)
 
 		if ItemRack_SetsFrame:IsVisible() then
-			SetDesaturation(getglobal("ItemRack_Sets_Inv"..ItemRack.InvOpen.."Icon"),1)
+			SetDesaturation(_G["ItemRack_Sets_Inv"..ItemRack.InvOpen.."Icon"],1)
 		end
 
 		if not IsShiftKeyDown() or ItemRack_Settings.RightClick=="OFF" then
@@ -2015,7 +2014,7 @@ function ItemRack_MenuFrame_OnHide()
 
 	Rack.StopTimer("MenuFrame")
 	for i=0,20 do
-		getglobal("ItemRackInv"..i):UnlockHighlight()
+		_G["ItemRackInv"..i]:UnlockHighlight()
 	end
 	ItemRack.InvOpen = nil
 end
@@ -2104,7 +2103,7 @@ local function shrink_tooltip()
 	if name_line then
 
 		for i=2,30 do
-			tooltip_line = getglobal("GameTooltipTextLeft"..i):GetText() or ""
+			tooltip_line = _G["GameTooltipTextLeft"..i]:GetText() or ""
 			if string.find(tooltip_line,durability_pattern) then
 				durability_line = tooltip_line
 			elseif string.find(tooltip_line,COOLDOWN_REMAINING) then
@@ -2213,7 +2212,7 @@ function ItemRack_CooldownUpdate_OnUpdate()
 		if ItemRack_InvFrame:IsVisible() then
 			for i=1,table.getn(ItemRack_Users[user].Bar) do
 				start, duration = GetInventoryItemCooldown("player",ItemRack_Users[user].Bar[i])
-				write_cooldown(getglobal("ItemRackInv"..ItemRack_Users[user].Bar[i].."Time"),start,duration)
+				write_cooldown(_G["ItemRackInv"..ItemRack_Users[user].Bar[i].."Time"],start,duration)
 			end
 		end
 
@@ -2221,7 +2220,7 @@ function ItemRack_CooldownUpdate_OnUpdate()
 			for i=1,ItemRack.NumberOfItems do
 				if ItemRack.BaggedItems[i].bag then
 					start, duration = GetContainerItemCooldown(ItemRack.BaggedItems[i].bag,ItemRack.BaggedItems[i].slot)
-					write_cooldown(getglobal("ItemRackMenu"..i.."Time"),start,duration)
+					write_cooldown(_G["ItemRackMenu"..i.."Time"],start,duration)
 				end
 			end
 		end
@@ -2266,17 +2265,17 @@ end
 
 function ItemRack_CooldownUpdate_OnHide()
 	for i=0,19 do
-		getglobal("ItemRackInv"..i.."Time"):SetText("")
+		_G["ItemRackInv"..i.."Time"]:SetText("")
 	end
 	for i=1,30 do
-		getglobal("ItemRackMenu"..i.."Time"):SetText("")
+		_G["ItemRackMenu"..i.."Time"]:SetText("")
 	end
 end
 
 -- changes the cooldown number on button named "button" to big/small depending on .BigCooldown
 function ItemRack_SetCooldownFont(button)
 
-	local item = getglobal(button.."Time")
+	local item = _G[button.."Time"]
 
 	if ItemRack_Settings.BigCooldown=="ON" then
 		item:SetFont("Fonts\\FRIZQT__.TTF",16,"OUTLINE")
@@ -2403,13 +2402,13 @@ function ItemRack_OptList_ScrollFrame_Update()
 	FauxScrollFrame_Update(ItemRack_OptList_ScrollFrame, table.getn(ItemRack.OptScroll), 11, 19 )
 
 	for i=1,11 do
-		item = getglobal("ItemRackOptList"..i)
+		item = _G["ItemRackOptList"..i]
 		idx = offset+i
 		if idx<=table.getn(ItemRack.OptScroll) then
 			optscroll = ItemRack.OptScroll[idx]
 			optinfo = ItemRack.OptInfo[optscroll.idx]
-			opttext = getglobal("ItemRackOptList"..i.."CheckButtonText")
-			optbutton = getglobal("ItemRackOptList"..i.."CheckButton")
+			opttext = _G["ItemRackOptList"..i.."CheckButtonText"]
+			optbutton = _G["ItemRackOptList"..i.."CheckButton"]
 			opttext:SetText(optinfo.text)
 			opttext:SetTextColor(1,1,1,1)
 			optbutton:Enable()
@@ -2451,7 +2450,7 @@ end
 
 -- sets the state of a checkbutton to nil, 0 or 1
 function ItemRack_TriStateCheck_SetState(button,value)
-	local label = getglobal(button:GetName().."Text")
+	local label = _G[button:GetName().."Text"]
 	button.tristate = value
 	if not value then
 		button:SetCheckedTexture("Interface\\Buttons\\UI-ScrollBar-Knob")
@@ -2533,13 +2532,13 @@ end
 local function highlight_set_item(v1)
 
 	if ItemRack.SetBuild[v1]==1 then
-		getglobal("ItemRack_Sets_Inv"..v1.."Icon"):SetVertexColor(1,1,1,1)
-		getglobal("ItemRack_Sets_Inv"..v1):SetAlpha(1)
-		getglobal("ItemRack_Sets_Inv"..v1):LockHighlight()
+		_G["ItemRack_Sets_Inv"..v1.."Icon"]:SetVertexColor(1,1,1,1)
+		_G["ItemRack_Sets_Inv"..v1]:SetAlpha(1)
+		_G["ItemRack_Sets_Inv"..v1]:LockHighlight()
 	else
-		getglobal("ItemRack_Sets_Inv"..v1.."Icon"):SetVertexColor(.4,.4,.4,1)
-		getglobal("ItemRack_Sets_Inv"..v1):SetAlpha(.5)
-		getglobal("ItemRack_Sets_Inv"..v1):UnlockHighlight()
+		_G["ItemRack_Sets_Inv"..v1.."Icon"]:SetVertexColor(.4,.4,.4,1)
+		_G["ItemRack_Sets_Inv"..v1]:SetAlpha(.5)
+		_G["ItemRack_Sets_Inv"..v1]:UnlockHighlight()
 	end
 end
 
@@ -2556,7 +2555,7 @@ function ItemRack_Sets_UpdateInventory()
 		if not texture then
 			_,texture = GetInventorySlotInfo(string.gsub(ItemRack.Indexes[i].paperdoll_slot,"Character",""))
 		end
-		getglobal("ItemRack_Sets_Inv"..i.."Icon"):SetTexture(texture)
+		_G["ItemRack_Sets_Inv"..i.."Icon"]:SetTexture(texture)
 		ItemRack.SetIcons[i+1] = texture
 		highlight_set_item(i)
 	end
@@ -2591,7 +2590,7 @@ function ItemRack_Sets_NewSet()
 	ItemRack_TriStateCheck_SetState(ItemRack_ShowCloak,nil)
 
 	for i=1,25 do
-		getglobal("ItemRack_Sets_Icon"..i):UnlockHighlight()
+		_G["ItemRack_Sets_Icon"..i]:UnlockHighlight()
 	end
 
 	ItemRack_Sets_NameLabel:SetText(ItemRackText.SETS_NAMELABEL_TEXT)
@@ -2648,7 +2647,7 @@ function ItemRack_Sets_InvToggle()
 		elseif not ItemRack_Users[user].Inv[id] and ItemRack.SetBuild[id]==1 then
 			ItemRack_Users[user].Visible="ON"
 			ItemRack_Users[user].Inv[id] = 1
-			getglobal("ItemRackInv"..id.."Icon"):SetTexture(get_item_info(id))
+			_G["ItemRackInv"..id.."Icon"]:SetTexture(get_item_info(id))
 			table.insert(ItemRack_Users[user].Bar,id)
 			draw_inv()
 		end
@@ -2669,7 +2668,7 @@ function ItemRack_Sets_ScrollFrame_Update()
 	FauxScrollFrame_Update(ItemRack_Sets_ScrollFrame, ceil(table.getn(ItemRack.SetIcons) / 5) , 5, 24 )
 	
 	for i=1,25 do
-		item = getglobal("ItemRack_Sets_Icon"..i)
+		item = _G["ItemRack_Sets_Icon"..i]
 		idx = (offset*5) + i
 		if idx<=table.getn(ItemRack.SetIcons) then
 			texture = ItemRack.SetIcons[idx]
@@ -2850,10 +2849,10 @@ function ItemRack_Sets_SavedScrollFrame_Update()
 	local listsize,listheight,liststub,compact = 8,28,"ItemRack_Sets_Saved",nil
 
 	for i=1,8 do
-		getglobal("ItemRack_Sets_Saved"..i):Hide()
+		_G["ItemRack_Sets_Saved"..i]:Hide()
 	end
 	for i=1,11 do
-		getglobal("ItemRack_Sets_Compact"..i):Hide()
+		_G["ItemRack_Sets_Compact"..i]:Hide()
 	end
 
 	if ItemRack_Settings.CompactList=="ON" then
@@ -2865,28 +2864,28 @@ function ItemRack_Sets_SavedScrollFrame_Update()
 	for i=1,listsize do
 		idx = offset + i
 		if idx<ItemRack.SetsListSize then
-			getglobal(liststub..i.."Name"):SetText(ItemRack.SetsList[idx].Name)
-			getglobal(liststub..i.."Icon"):SetTexture(ItemRack.SetsList[idx].Icon)
+			_G[liststub..i.."Name"]:SetText(ItemRack.SetsList[idx].Name)
+			_G[liststub..i.."Icon"]:SetTexture(ItemRack.SetsList[idx].Icon)
 			if not compact then
-				getglobal(liststub..i.."Count"):SetText(ItemRack.SetsList[idx].Count)
-				getglobal(liststub..i.."Key"):SetText(ItemRack.SetsList[idx].Key)
+				_G[liststub..i.."Count"]:SetText(ItemRack.SetsList[idx].Count)
+				_G[liststub..i.."Key"]:SetText(ItemRack.SetsList[idx].Key)
 			end
 			if Rack_User[user].Sets[ItemRack.SetsList[idx].Name].hide then
-				getglobal(liststub..i.."Name"):SetTextColor(.5,.5,.5)
+				_G[liststub..i.."Name"]:SetTextColor(.5,.5,.5)
 				if not compact then
-					getglobal(liststub..i.."Count"):SetTextColor(.5,.5,.5)
-					getglobal(liststub..i.."Key"):SetTextColor(.5,.5,.5)
+					_G[liststub..i.."Count"]:SetTextColor(.5,.5,.5)
+					_G[liststub..i.."Key"]:SetTextColor(.5,.5,.5)
 				end
 			else
-				getglobal(liststub..i.."Name"):SetTextColor(1,1,1)
+				_G[liststub..i.."Name"]:SetTextColor(1,1,1)
 				if not compact then
-					getglobal(liststub..i.."Count"):SetTextColor(1,1,1)
-					getglobal(liststub..i.."Key"):SetTextColor(1,1,1)
+					_G[liststub..i.."Count"]:SetTextColor(1,1,1)
+					_G[liststub..i.."Key"]:SetTextColor(1,1,1)
 				end
 			end
-			getglobal(liststub..i):Show()
+			_G[liststub..i]:Show()
 		else
-			getglobal(liststub..i):Hide()
+			_G[liststub..i]:Hide()
 		end
 	end
 
@@ -2897,10 +2896,10 @@ function ItemRack_Sets_SavedScrollFrame_Update()
 		ItemRack_Sets_Saved1Key:SetText("")
 		ItemRack_Sets_Saved1:Show()
 		for i=2,8 do
-			getglobal("ItemRack_Sets_Saved"..i):Hide()
+			_G["ItemRack_Sets_Saved"..i]:Hide()
 		end
 		for i=1,11 do
-			getglobal("ItemRack_Sets_Compact"..i):Hide()
+			_G["ItemRack_Sets_Compact"..i]:Hide()
 		end
 	end
 
@@ -2988,7 +2987,7 @@ local function unbind_key_index(idx)
 		local oldkey = GetBindingKey("EQUIPSET"..idx)
 		if oldkey then
 			SetBinding(oldkey)
-			setglobal("BINDING_NAME_EQUIPSET"..idx,string.format(ItemRackText.BINDINGFORMAT,idx))
+			_G["BINDING_NAME_EQUIPSET"..idx] = string.format(ItemRackText.BINDINGFORMAT,idx)
 		end
 	end
 end
@@ -3026,7 +3025,7 @@ function ItemRack_AgreeOnKeyBindings()
 		for i=1,10 do
 			oldkey = GetBindingKey("EQUIPSET"..i)
 			if oldkey then
-				_,_,setname = string.find(getglobal("BINDING_NAME_EQUIPSET"..i) or "",ItemRackText.BINDINGSEARCH)
+				_,_,setname = string.find(_G["BINDING_NAME_EQUIPSET"..i] or "",ItemRackText.BINDINGSEARCH)
 				if setname and Rack_User[user].Sets[setname] then
 					Rack_User[user].Sets[setname].key = oldkey
 					Rack_User[user].Sets[setname].keyindex = i
@@ -3099,7 +3098,7 @@ local function bind_key_to_set(key,setname)
 		ItemRack.KeyBindingsSettled = nil -- don't do an agree on key bindings until set
 		local success = SetBinding(key,"EQUIPSET"..idx)
 		if success then
-			setglobal("BINDING_NAME_EQUIPSET"..idx,string.format(ItemRackText.BINDINGFORMAT,setname))
+			_G["BINDING_NAME_EQUIPSET"..idx] = string.format(ItemRackText.BINDINGFORMAT,setname)
 			sets_message(string.format(ItemRackText.BINDSET,key))
 		else
 			-- couldn't bind the key, forget we tried (should never get to this part)
@@ -3140,7 +3139,7 @@ function ItemRack_Sets_KeyBind_OnKeyDown(arg1)
 		action = GetBindingAction(key)
 		if action and action~="" then
 			StaticPopupDialogs["ITEMRACKKEYCONFIRM"] = {
-				text = key.." is already used for "..tostring(getglobal("BINDING_NAME_"..action)).."\n\nOverwrite?",
+				text = key.." is already used for "..tostring(_G["BINDING_NAME_"..action]).."\n\nOverwrite?",
 				button1 = "Yes",
 				button2 = "No",
 				OnAccept = function() bind_key_to_set(key,setname) end,
@@ -3167,7 +3166,7 @@ function ItemRack_InitializeKeyBindings()
 	for i in Rack_User[user].Sets do
 		keyidx = Rack_User[user].Sets[i].keyindex
 		if keyidx then
-			setglobal("BINDING_NAME_EQUIPSET"..keyidx,string.format(ItemRackText.BINDINGFORMAT,i))
+			_G["BINDING_NAME_EQUIPSET"..keyidx] = string.format(ItemRackText.BINDINGFORMAT,i)
 			SetBinding(Rack_User[user].Sets[i].key,"EQUIPSET"..keyidx)
 		end
 	end
@@ -3208,7 +3207,7 @@ end
 function ItemRack_Sets_Toggle(v1)
 
 	if v1 then
-		if not getglobal("ItemRack_Sets_SubFrame"..v1):IsVisible() then
+		if not _G["ItemRack_Sets_SubFrame"..v1]:IsVisible() then
 			ItemRack_SetsFrame:Hide()
 		end
 	end
@@ -3250,11 +3249,11 @@ function ItemRack_Tab(v1)
 	ItemRack_EditEvent:Hide()
 	ItemRack.SelectedTab = (v1 or ItemRack.SelectedTab) or 1
 	for i=1,4 do
-		getglobal("ItemRack_Sets_Tab"..i):UnlockHighlight()
-		getglobal("ItemRack_Sets_SubFrame"..i):Hide()
+		_G["ItemRack_Sets_Tab"..i]:UnlockHighlight()
+		_G["ItemRack_Sets_SubFrame"..i]:Hide()
 	end
-	getglobal("ItemRack_Sets_Tab"..ItemRack.SelectedTab):LockHighlight()
-	getglobal("ItemRack_Sets_SubFrame"..ItemRack.SelectedTab):Show()
+	_G["ItemRack_Sets_Tab"..ItemRack.SelectedTab]:LockHighlight()
+	_G["ItemRack_Sets_SubFrame"..ItemRack.SelectedTab]:Show()
 end
 
 -- when set chooser dropdown shown
@@ -3269,7 +3268,7 @@ function ItemRack_SetSelect_OnHide()
 	-- remove ItemRack_Sets_SetSelect from UISpecialFrames and add ItemRack_SetsFrame
 	make_escable("ItemRack_Sets_SetSelect","remove")
 	make_escable("ItemRack_SetsFrame","add")
-	getglobal("ItemRack_Sets_SubFrame"..ItemRack.SelectedTab):Show()
+	_G["ItemRack_Sets_SubFrame"..ItemRack.SelectedTab]:Show()
 end
 
 -- when event editor shown
@@ -3413,9 +3412,9 @@ function ItemRack_Events_ScrollFrame_Update()
 	
 	for i=1,7 do
 		idx = offset + i
-		button = getglobal("ItemRack_Event"..i)
+		button = _G["ItemRack_Event"..i]
 		if idx<eventListSize then
-			local eventsNames = getglobal("ItemRack_Event"..i.."Name")
+			local eventsNames = _G["ItemRack_Event"..i.."Name"]
 			if ItemRack_Settings.ShowAllEvents=="ON" then
 				eventsNames:SetText(eventList[idx].name)
 			else
@@ -3425,8 +3424,8 @@ function ItemRack_Events_ScrollFrame_Update()
 			end
 			eventsNames:SetFont("Fonts\\FRIZQT__.TTF",9)
 			
-			icon = getglobal("ItemRack_Event"..i.."Icon")
-			enable = getglobal("ItemRack_Event"..i.."Enable")
+			icon = _G["ItemRack_Event"..i.."Icon"]
+			enable = _G["ItemRack_Event"..i.."Enable"]
 			if eventList[idx].setname then
 				icon:SetNormalTexture(eventList[idx].texture)
 				icon:SetPushedTexture(eventList[idx].texture)
@@ -4008,8 +4007,8 @@ function Rack.OnEvent()
 				Rack_User[user].Sets["Rack-CombatQueue"][i].id = nil
 				Rack_User[user].Sets["Rack-CombatQueue"][i].name = nil
 			end
-			getglobal("ItemRackInv"..i.."Queue"):Hide()
-			getglobal(ItemRack.Indexes[i].paperdoll_slot.."Queue"):Hide()
+			_G["ItemRackInv"..i.."Queue"]:Hide()
+			_G[ItemRack.Indexes[i].paperdoll_slot.."Queue"]:Hide()
 		end
 		if somethingQueued then
 			Rack.EquipSet("Rack-CombatQueue")
@@ -4839,8 +4838,8 @@ end
 
 -- adds an item 'id' to 'slot' queue for post-combat/death swap
 function Rack.AddToCombatQueue(slot,id)
-	local button = getglobal("ItemRackInv"..slot.."Queue")
-	local paperdoll = getglobal(ItemRack.Indexes[slot].paperdoll_slot.."Queue")
+	local button = _G["ItemRackInv"..slot.."Queue"]
+	local paperdoll = _G[ItemRack.Indexes[slot].paperdoll_slot.."Queue"]
 	local _,wornId = Rack.GetItemInfo(slot)
 	if Rack.CombatQueue[slot]==id or id==wornId then
 		Rack.CombatQueue[slot] = nil
@@ -5072,7 +5071,7 @@ function Rack.MenuFrame()
 	local over,frame
 	
 	for i=1,table.getn(Rack.MenuFrameSources) do
-		frame = getglobal(Rack.MenuFrameSources[i])
+		frame = _G[Rack.MenuFrameSources[i]]
 		over = over or (frame and MouseIsOver(frame))
 	end
 
