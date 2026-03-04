@@ -1,4 +1,4 @@
---[[ ItemRack 1.975 7/27/06 Gello ]]--
+--[[ ItemRack originally by Gello ]]--
 
 --[[ SavedVariables ]]--
 
