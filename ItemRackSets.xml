@@ -1384,6 +1384,7 @@
 									</Anchor>
 								</Anchors>
 								<NormalTexture file="Interface\Icons\INV_Misc_Coin_02"/>
+								<HighlightTexture alphaMode="ADD" file="Interface\Buttons\ButtonHilight-Square"/>
 								<Layers>
 									<Layer level="OVERLAY">
 										<FontString name="$parentName" inherits="GameFontHighlightSmallOutline">
