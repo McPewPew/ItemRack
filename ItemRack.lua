@@ -606,12 +606,12 @@ end
 -- builds a menu outward from invslot (0-19)
 -- setframe = true if this is to dock to the set frame
 local cacheInvalid = true
-local prevSlot, prevRelativeTo
+local prevSlot
 local idx = 1
 function ItemRack_BuildMenu(invslot,relativeTo)
-	if prevSlot ~= invslot or prevRelativeTo ~= relativeTo then
+	if prevSlot ~= invslot then
 		cacheInvalid = true
-		prevSlot, prevRelativeTo = invslot, relativeTo
+		prevSlot = invslot
 	end
 
 	local item,itemID,texture,name,equipslot,soulbound,found,count
