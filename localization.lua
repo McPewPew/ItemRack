@@ -5,7 +5,7 @@ ItemRackText = {}
 -- The above is no longer true, due to the addition of the Goglin Brainwashing Device 
 ItemRackText.INVTYPE_CONTAINER = "Bag"
 ItemRackText.MOUNTCHECK = "^Increases speed" -- used only for checking if a mount buff is a real one
-ItemRackText.MOUNTCHECK2 = "^Speed scales with your Riding skill\.$"
+ItemRackText.MOUNTCHECK2 = "^Speed scales with your Riding skill%.$"
 ItemRackText.MOUNTCHECK3 = "^Slow and steady%.%.%.$"
 
 --Goblin Brainwashing Device (GBD) integration
