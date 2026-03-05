@@ -1872,6 +1872,7 @@ function ItemRack_Menu_OnClick(arg1)
 
 	if ItemRack.BankIsOpen then
 		if ItemRack.InvOpen~=20 then
+			if not itemID then return end
 			Rack.ClearLockList()
 			local bag,slot
 			if ItemRack.BankedItems[itemID] then
@@ -5021,14 +5022,7 @@ function Rack.TooltipUpdate()
 
 		if ItemRack.TooltipType=="BAG" then
 			if ItemRack.TooltipBag==-1 then
-				local _,_,id = string.find(GetContainerItemLink(ItemRack.TooltipBag,ItemRack.TooltipSlot) or "","item:(%d+)")
-				if id then
-					_,id = GetItemInfo(id)
-					if id then
-						-- :SetBagItem doesn't appear to work for -1 bank slot
-						GameTooltip:SetHyperlink(id)
-					end
-				end
+				GameTooltip:SetInventoryItem("player",BankButtonIDToInvSlotID(ItemRack.TooltipSlot))
 			else
 				GameTooltip:SetBagItem(ItemRack.TooltipBag,ItemRack.TooltipSlot)
 			end
